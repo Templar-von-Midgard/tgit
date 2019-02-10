@@ -18,9 +18,9 @@ IncludeCategories:
     Priority: 2
   - Regex: '<[^/]*>'
     Priority: 2
-  - Regex: '<Qt.*?/>'
+  - Regex: '<Qt.*>'
     Priority: 3
-  - Regex: '.*'
+  - Regex: '".*"'
     Priority: 99
 
 SortUsingDeclarations: true
