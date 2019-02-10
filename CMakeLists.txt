@@ -8,6 +8,17 @@ list(APPEND CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 )
 
+macro(add_classes _target)
+  set(_sources)
+  foreach(_src ${ARGN})
+    list(APPEND _sources ${_src}.cpp ${_src}.hpp)
+  endforeach()
+  target_sources(${_target}
+    PRIVATE ${_sources}
+  )
+  unset(_sources)
+endmacro()
+
 project(tgit VERSION 0.1.0 LANGUAGES CXX)
 
 find_package(libgit2 REQUIRED)

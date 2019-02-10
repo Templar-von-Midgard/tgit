@@ -5,6 +5,9 @@ set(CMAKE_AUTOMOC ON)
 add_executable(tgit WIN32
   src/main.cpp
 )
+add_classes(tgit
+  src/TGitMainWindow
+)
 target_link_libraries(tgit
   PRIVATE git::libgit2
           Qt5::Widgets
