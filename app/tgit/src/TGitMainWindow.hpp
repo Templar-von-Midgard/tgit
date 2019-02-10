@@ -10,6 +10,11 @@ class TGitMainWindow : public QMainWindow {
 public:
   explicit TGitMainWindow(QWidget* parent = nullptr);
 
+  void loadRepository(const QString& path);
+
+signals:
+  void repositoryLoadFailed();
+
 private slots:
   void openAction_triggered();
 
