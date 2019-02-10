@@ -1,0 +1,26 @@
+%YAML 1.2
+---
+BasedOnStyle: LLVM
+IndentWidth: 2
+ColumnLimit: 120
+---
+Language: Cpp
+PointerBindsToType: true
+AlwaysBreakTemplateDeclarations: true
+AllowShortFunctionsOnASingleLine: false
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+SortIncludes: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '<c[^/]*>'
+    Priority: 2
+  - Regex: '<[^/]*>'
+    Priority: 2
+  - Regex: '<Qt.*?/>'
+    Priority: 3
+  - Regex: '.*'
+    Priority: 99
+
+SortUsingDeclarations: true
