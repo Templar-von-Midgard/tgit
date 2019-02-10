@@ -3,8 +3,11 @@
 #include <QtCore/QDebug>
 #include <QtCore/QDir>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QTableView>
+
+#include "GitLogModel.hpp"
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
   auto fileMenu = menuBar()->addMenu("&File");
@@ -13,7 +16,12 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
   connect(openAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
 
   View = new QTableView(this);
+  View->setShowGrid(false);
+  View->setItemDelegate(new QItemDelegate(View));
   setCentralWidget(View);
+
+  Model = new GitLogModel(this);
+  View->setModel(Model);
 }
 
 void TGitMainWindow::loadRepository(const QString& path) {
@@ -21,6 +29,11 @@ void TGitMainWindow::loadRepository(const QString& path) {
   QDir directory(path);
   if (!directory.exists()) {
     emit repositoryLoadFailed();
+    return;
+  }
+  if (!Model->loadRepository(path)) {
+    emit repositoryLoadFailed();
+    return;
   }
 }
 

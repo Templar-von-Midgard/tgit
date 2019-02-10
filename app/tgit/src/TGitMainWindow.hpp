@@ -1,9 +1,10 @@
 #ifndef TGITMAINWINDOW_HPP
 #define TGITMAINWINDOW_HPP
 
-#include <QMainWindow>
+#include <QtWidgets/QMainWindow>
 
 class QTableView;
+class GitLogModel;
 
 class TGitMainWindow : public QMainWindow {
   Q_OBJECT
@@ -19,6 +20,7 @@ private slots:
   void openAction_triggered();
 
 private:
+  GitLogModel* Model;
   QTableView* View;
 };
 

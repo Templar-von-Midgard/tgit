@@ -1,8 +1,11 @@
 #include <QtCore/QCommandLineParser>
+#include <QtCore/QDebug>
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 
 #include "TGitMainWindow.hpp"
+
+#include <git2/global.h>
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
@@ -18,6 +21,7 @@ int main(int argc, char* argv[]) {
   parser.process(app);
 
   auto window = new TGitMainWindow;
+  QObject::connect(window, &TGitMainWindow::repositoryLoadFailed, [] { qDebug() << "Repository load failed"; });
   window->show();
 
   auto args = parser.positionalArguments();
@@ -25,5 +29,7 @@ int main(int argc, char* argv[]) {
     QTimer::singleShot(0, window, [repositoryPath = *it, window] { window->loadRepository(repositoryPath); });
   }
 
+  git_libgit2_init();
+  QObject::connect(&app, &QApplication::aboutToQuit, [] { git_libgit2_shutdown(); });
   return app.exec();
 }
