@@ -94,7 +94,7 @@ QVariant GitLogModel::headerData(int section, Qt::Orientation orientation, int r
 
 QVariant GitLogModel::data(const QModelIndex& index, int role) const {
   if (role == Qt::DisplayRole) {
-    return QVariant::fromValue(Commits[index.row()]);
+    return QVariant::fromValue(&Commits[index.row()]);
   }
   if (role == Qt::DecorationRole) {
     return QVariant::fromValue(Graph[index.row()]);

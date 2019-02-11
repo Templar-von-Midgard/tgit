@@ -40,6 +40,10 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
+  git_repository* repository() const {
+    return Repository;
+  }
+
 private:
   void reset(git_repository* repository, git_revwalk* revisionWalker);
 
@@ -54,7 +58,7 @@ private:
   std::vector<Edge> PreviousEdges;
 };
 
-Q_DECLARE_METATYPE(git_oid);
+Q_DECLARE_METATYPE(const git_oid*);
 Q_DECLARE_METATYPE(GraphRow);
 
 #endif // GITLOGMODEL_HPP

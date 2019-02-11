@@ -8,6 +8,7 @@ add_executable(tgit WIN32
 add_classes(tgit
   src/TGitMainWindow
   src/GitLogModel
+  src/HistoryModelAdaptor
 )
 target_link_libraries(tgit
   PRIVATE git::libgit2

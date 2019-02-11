@@ -8,6 +8,7 @@
 #include <QtWidgets/QTableView>
 
 #include "GitLogModel.hpp"
+#include "HistoryModelAdaptor.hpp"
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
   auto fileMenu = menuBar()->addMenu("&File");
@@ -21,7 +22,9 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
   setCentralWidget(View);
 
   Model = new GitLogModel(this);
-  View->setModel(Model);
+  auto modelAdaptor = new HistoryModelAdaptor(this);
+  modelAdaptor->setSourceModel(Model);
+  View->setModel(modelAdaptor);
 }
 
 void TGitMainWindow::loadRepository(const QString& path) {
