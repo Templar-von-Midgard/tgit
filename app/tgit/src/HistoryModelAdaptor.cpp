@@ -2,44 +2,10 @@
 
 #include <QtCore/QDateTime>
 
+#include "CommitView.hpp"
 #include "GitLogModel.hpp"
 
-#include <git2/commit.h>
-
 namespace {
-
-struct commit_scope {
-  git_commit* handle = nullptr;
-  ~commit_scope() {
-    if (handle != nullptr) {
-      git_commit_free(handle);
-    }
-  }
-};
-
-struct CommitView {
-  git_repository* repository;
-  const git_oid* oid;
-
-  template <typename Action>
-  auto withCommit(Action&& action) const {
-    commit_scope commit;
-    git_commit_lookup(&commit.handle, repository, oid);
-    return std::forward<Action>(action)(commit.handle);
-  }
-
-  QString shortMessage() const {
-    return withCommit([](git_commit* commit) { return QString::fromUtf8(git_commit_summary(commit)); });
-  }
-
-  QDateTime creation() const {
-    return withCommit([](git_commit* commit) { return QDateTime::fromSecsSinceEpoch(git_commit_time(commit)); });
-  }
-
-  QString author() const {
-    return withCommit([](git_commit* commit) { return QString::fromUtf8(git_commit_author(commit)->name); });
-  }
-};
 
 constexpr int ColumnCount = 3;
 
