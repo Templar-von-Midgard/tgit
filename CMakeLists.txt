@@ -12,7 +12,11 @@ macro(add_classes _target)
   set(_sources)
   foreach(_src ${ARGN})
     list(APPEND _sources ${_src}.cpp ${_src}.hpp)
+    if(EXISTS ${_src}.ui OR EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${_src}.ui)
+      list(APPEND _sources ${_src}.ui)
+    endif()
   endforeach()
+  message(STATUS "${_sources}")
   target_sources(${_target}
     PRIVATE ${_sources}
   )

@@ -21,8 +21,6 @@ private:
   QLabel* Author;
   QLabel* Creation;
   QPlainTextEdit* Message;
-  QTableView* DiffOverview;
-  CommitDiffModel* DiffModel;
 };
 
 #endif // COMMITDETAILSWIDGET_HPP

@@ -9,40 +9,40 @@
 #include <QtWidgets/QTableView>
 
 #include "CommitDetailsWidget.hpp"
+#include "CommitDiffModel.hpp"
 #include "CommitView.hpp"
 #include "GitLogModel.hpp"
 #include "GraphItemDelegate.hpp"
 #include "HistoryModelAdaptor.hpp"
+#include "ui_TGitMainWindow.h"
 
-TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
-  auto fileMenu = menuBar()->addMenu("&File");
-  auto openAction = fileMenu->addAction("&Open");
-  openAction->setShortcut(QKeySequence::Open);
-  connect(openAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
+TGitMainWindow::TGitMainWindow(QWidget* parent)
+    : QMainWindow(parent), Model(new GitLogModel(this)), Ui(std::make_unique<Ui::TGitMainWindow>()) {
+  Ui->setupUi(this);
+  Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
+  connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
 
-  View = new QTableView(this);
-  View->setShowGrid(false);
-  View->setItemDelegate(new QItemDelegate(View));
-  View->setItemDelegateForColumn(0, new GraphItemDelegate(this));
+  Ui->LogView->setShowGrid(false);
+  Ui->LogView->setItemDelegate(new QItemDelegate(Ui->LogView));
+  Ui->LogView->setItemDelegateForColumn(0, new GraphItemDelegate(Ui->LogView));
 
-  CommitDetails = new CommitDetailsWidget(this);
-
-  auto splitter = new QSplitter(this);
-  splitter->addWidget(View);
-  splitter->addWidget(CommitDetails);
-  setCentralWidget(splitter);
-
-  Model = new GitLogModel(this);
   auto modelAdaptor = new HistoryModelAdaptor(this);
   modelAdaptor->setSourceModel(Model);
-  View->setModel(modelAdaptor);
+  Ui->LogView->setModel(modelAdaptor);
 
-  connect(View->selectionModel(), &QItemSelectionModel::currentRowChanged, CommitDetails,
-          [this, modelAdaptor](const QModelIndex& current, const auto&) {
+  auto diffModel = new CommitDiffModel(this);
+  Ui->DiffOverview->setModel(diffModel);
+
+  connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
+          [this, modelAdaptor, diffModel](const QModelIndex& current, const auto&) {
             CommitView commit{Model->repository(), modelAdaptor->mapToSource(current).data().value<const git_oid*>()};
-            CommitDetails->setCommit(commit);
+            Ui->CommitDetails->setCommit(commit);
+            diffModel->setDiff(commit.diff());
+            Ui->DiffOverview->resizeColumnsToContents();
           });
 }
+
+TGitMainWindow::~TGitMainWindow() = default;
 
 void TGitMainWindow::loadRepository(const QString& path) {
   qDebug() << path;
@@ -55,7 +55,7 @@ void TGitMainWindow::loadRepository(const QString& path) {
     emit repositoryLoadFailed();
     return;
   }
-  View->selectRow(0);
+  Ui->LogView->selectRow(0);
 }
 
 void TGitMainWindow::openAction_triggered() {
