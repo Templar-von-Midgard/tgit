@@ -12,7 +12,7 @@ void CommitDiffModel::setDiff(CommitDiff diff) {
 }
 
 int CommitDiffModel::rowCount(const QModelIndex& parent) const {
-  return Diff.files.size();
+  return Diff.Files.size();
 }
 
 int CommitDiffModel::columnCount(const QModelIndex& parent) const {
@@ -23,10 +23,10 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
   if (role != Qt::DisplayRole && role != Qt::BackgroundRole) {
     return {};
   }
-  const auto& file = Diff.files[index.row()];
-  bool deleted = file.newName.isEmpty();
-  bool added = file.oldName.isEmpty();
-  bool renamed = !added && !deleted && file.oldName != file.newName;
+  const auto& file = Diff.Files[index.row()];
+  bool deleted = file.NewName.isEmpty();
+  bool added = file.OldName.isEmpty();
+  bool renamed = !added && !deleted && file.OldName != file.NewName;
   if (role == Qt::BackgroundRole) {
     if (deleted) {
       return QBrush(Qt::darkRed);
@@ -53,15 +53,15 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
     return "*";
   case 1:
     if (added) {
-      return file.newName;
+      return file.NewName;
     }
     if (deleted) {
-      return file.oldName;
+      return file.OldName;
     }
     if (renamed) {
-      return QStringLiteral("%1 -> %2").arg(file.oldName).arg(file.newName);
+      return QStringLiteral("%1 -> %2").arg(file.OldName).arg(file.NewName);
     }
-    return file.newName;
+    return file.NewName;
   }
   return {};
 }

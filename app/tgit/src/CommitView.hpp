@@ -10,11 +10,18 @@ struct git_repository;
 struct git_oid;
 
 struct CommitDiff {
-  struct File {
-    QString oldName;
-    QString newName;
+  struct Line {
+    int OldLinenumber;
+    int NewLinenumber;
+    int NumberOfLine;
   };
-  std::vector<File> files;
+
+  struct File {
+    QString OldName;
+    QString NewName;
+    std::vector<Line> Lines;
+  };
+  std::vector<File> Files;
 };
 
 struct CommitView {
