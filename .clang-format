@@ -7,9 +7,10 @@ ColumnLimit: 120
 Language: Cpp
 PointerBindsToType: true
 AlwaysBreakTemplateDeclarations: true
-AllowShortFunctionsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: None
 AllowShortIfStatementsOnASingleLine: false
 AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
 
 SortIncludes: true
 IncludeBlocks: Regroup
