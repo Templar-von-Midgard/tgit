@@ -12,6 +12,7 @@ add_classes(tgit
   src/HistoryModelAdaptor
   src/GraphItemDelegate
   src/CommitView
+  src/CommitDetailsWidget
 )
 target_link_libraries(tgit
   PRIVATE git::libgit2

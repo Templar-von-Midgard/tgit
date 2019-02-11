@@ -5,6 +5,7 @@
 
 class QTableView;
 class GitLogModel;
+class CommitDetailsWidget;
 
 class TGitMainWindow : public QMainWindow {
   Q_OBJECT
@@ -21,7 +22,9 @@ private slots:
 
 private:
   GitLogModel* Model;
+
   QTableView* View;
+  CommitDetailsWidget* CommitDetails;
 };
 
 #endif // TGITMAINWINDOW_HPP
