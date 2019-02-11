@@ -4,6 +4,7 @@
 #include <QtCore/QIdentityProxyModel>
 
 class HistoryModelAdaptor : public QIdentityProxyModel {
+  Q_OBJECT
 public:
   explicit HistoryModelAdaptor(QObject* parent = nullptr);
 

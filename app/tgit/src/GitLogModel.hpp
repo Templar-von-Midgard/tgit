@@ -5,6 +5,8 @@
 
 #include <QtCore/QAbstractTableModel>
 
+#include "GraphRow.hpp"
+
 #include <git2/oid.h>
 
 struct git_repository;
@@ -13,18 +15,6 @@ struct git_revwalk;
 struct Edge {
   git_oid Source;
   git_oid Destination;
-};
-
-struct Path {
-  int Source;
-  int Destination;
-};
-
-using PathList = std::vector<Path>;
-
-struct GraphRow {
-  int NodeIndex;
-  PathList Paths;
 };
 
 class GitLogModel : public QAbstractTableModel {
@@ -59,6 +49,5 @@ private:
 };
 
 Q_DECLARE_METATYPE(const git_oid*);
-Q_DECLARE_METATYPE(GraphRow);
 
 #endif // GITLOGMODEL_HPP

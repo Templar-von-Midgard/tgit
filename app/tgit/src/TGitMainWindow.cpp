@@ -8,6 +8,7 @@
 #include <QtWidgets/QTableView>
 
 #include "GitLogModel.hpp"
+#include "GraphItemDelegate.hpp"
 #include "HistoryModelAdaptor.hpp"
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
@@ -19,6 +20,7 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent) {
   View = new QTableView(this);
   View->setShowGrid(false);
   View->setItemDelegate(new QItemDelegate(View));
+  View->setItemDelegateForColumn(0, new GraphItemDelegate(this));
   setCentralWidget(View);
 
   Model = new GitLogModel(this);
