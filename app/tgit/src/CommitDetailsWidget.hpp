@@ -5,7 +5,9 @@
 
 class QLabel;
 class QPlainTextEdit;
+class QTableView;
 
+class CommitDiffModel;
 class CommitView;
 
 class CommitDetailsWidget : public QWidget {
@@ -19,6 +21,8 @@ private:
   QLabel* Author;
   QLabel* Creation;
   QPlainTextEdit* Message;
+  QTableView* DiffOverview;
+  CommitDiffModel* DiffModel;
 };
 
 #endif // COMMITDETAILSWIDGET_HPP

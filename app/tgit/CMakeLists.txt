@@ -13,6 +13,7 @@ add_classes(tgit
   src/GraphItemDelegate
   src/CommitView
   src/CommitDetailsWidget
+  src/CommitDiffModel
 )
 target_link_libraries(tgit
   PRIVATE git::libgit2
