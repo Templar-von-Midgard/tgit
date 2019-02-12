@@ -10,4 +10,5 @@ TGit is a GUI `git` client with the primary design goal of being fast and respon
 mkdir _builds/default
 cd _builds/default
 cmake ../..
+make
 ```
