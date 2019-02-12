@@ -2,8 +2,11 @@
 #define TGITMAINWINDOW_HPP
 
 #include <memory>
+#include <optional>
 
 #include <QtWidgets/QMainWindow>
+
+#include "DiffView.hpp"
 
 class GitLogModel;
 
@@ -27,6 +30,7 @@ private slots:
 
 private:
   GitLogModel* Model;
+  std::optional<DiffView> CurrentDiff;
 
   std::unique_ptr<Ui::TGitMainWindow> Ui;
 };

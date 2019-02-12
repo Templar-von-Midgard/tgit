@@ -9,20 +9,7 @@
 struct git_repository;
 struct git_oid;
 
-struct CommitDiff {
-  struct Line {
-    int OldLinenumber;
-    int NewLinenumber;
-    int NumberOfLine;
-  };
-
-  struct File {
-    QString OldName;
-    QString NewName;
-    std::vector<Line> Lines;
-  };
-  std::vector<File> Files;
-};
+class DiffView;
 
 struct CommitView {
   git_repository* Repository;
@@ -34,7 +21,7 @@ struct CommitView {
   QDateTime creation() const noexcept;
   QString author() const noexcept;
 
-  CommitDiff diff() const noexcept;
+  DiffView diff() const noexcept;
 };
 
 #endif // COMMITVIEW_HPP

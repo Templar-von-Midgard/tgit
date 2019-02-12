@@ -37,9 +37,15 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
           [this, modelAdaptor, diffModel](const QModelIndex& current, const auto&) {
             CommitView commit{Model->repository(), modelAdaptor->mapToSource(current).data().value<const git_oid*>()};
             Ui->CommitDetails->setCommit(commit);
-            diffModel->setDiff(commit.diff());
+            CurrentDiff = commit.diff();
+            diffModel->setDiff(&*CurrentDiff);
             Ui->DiffOverview->resizeColumnsToContents();
+            Ui->FileDiff->setDiff(&*CurrentDiff);
+            Ui->FileDiff->setFile(&CurrentDiff->files().front());
           });
+  connect(
+      Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
+      [this](const QModelIndex& current, const auto&) { Ui->FileDiff->setFile(&CurrentDiff->files()[current.row()]); });
 }
 
 TGitMainWindow::~TGitMainWindow() = default;

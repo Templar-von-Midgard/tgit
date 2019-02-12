@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>tgit</string>
   </property>
+  <widget class="QSplitter" name="DiffSplitter">
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
   <widget class="QSplitter" name="CentralSplitter">
    <property name="orientation">
     <enum>Qt::Horizontal</enum>
@@ -49,6 +53,8 @@
     </widget>
    </widget>
   </widget>
+  <widget class="FileDiffWidget" name="FileDiff" />
+ </widget>
   <widget class="QMenuBar" name="MenuBar">
    <property name="geometry">
     <rect>
@@ -77,6 +83,11 @@
    <class>CommitDetailsWidget</class>
    <extends>QWidget</extends>
    <header>CommitDetailsWidget.hpp</header>
+  </customwidget>
+  <customwidget>
+   <class>FileDiffWidget</class>
+   <extends>QSplitter</extends>
+   <header>FileDiffWidget.hpp</header>
   </customwidget>
  </customwidgets>
  <resources/>

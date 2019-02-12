@@ -2,28 +2,48 @@
 
 #include <QtGui/QBrush>
 
+#include "DiffView.hpp"
+
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
-void CommitDiffModel::setDiff(CommitDiff diff) {
+void CommitDiffModel::setDiff(DiffView* diff) {
   beginResetModel();
-  Diff = std::move(diff);
+  Diff = diff;
   endResetModel();
 }
 
 int CommitDiffModel::rowCount(const QModelIndex& parent) const {
-  return Diff.Files.size();
+  if (Diff != nullptr) {
+    return Diff->files().size();
+  }
+  return {};
 }
 
 int CommitDiffModel::columnCount(const QModelIndex& parent) const {
-  return 2;
+  return 3;
+}
+
+QVariant CommitDiffModel::headerData(int section, Qt::Orientation orientation, int role) const {
+  if (orientation != Qt::Horizontal || role != Qt::DisplayRole) {
+    return QAbstractTableModel::headerData(section, orientation, role);
+  }
+  switch (section) {
+  case 0:
+    return "S";
+  case 1:
+    return "File";
+  case 2:
+    return "# Diffs";
+  }
+  return {};
 }
 
 QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
   if (role != Qt::DisplayRole && role != Qt::BackgroundRole) {
     return {};
   }
-  const auto& file = Diff.Files[index.row()];
+  const auto& file = Diff->files()[index.row()];
   bool deleted = file.NewName.isEmpty();
   bool added = file.OldName.isEmpty();
   bool renamed = !added && !deleted && file.OldName != file.NewName;
@@ -62,6 +82,11 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
       return QStringLiteral("%1 -> %2").arg(file.OldName).arg(file.NewName);
     }
     return file.NewName;
+  case 2:
+    if (!added && !deleted) {
+      return static_cast<int>(file.Lines.size());
+    }
+    return "";
   }
   return {};
 }
