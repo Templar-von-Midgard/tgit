@@ -18,6 +18,7 @@ add_classes(tgit
   src/CommitDiffModel
   src/FileDiffWidget
   src/DiffView
+  src/CodeViewer
 )
 target_link_libraries(tgit
   PRIVATE git::libgit2
