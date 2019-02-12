@@ -23,11 +23,14 @@ macro(add_classes _target)
   unset(_sources)
 endmacro()
 
-project(tgit VERSION 0.1.0 LANGUAGES CXX)
+project(tgit VERSION 0.0.1 LANGUAGES CXX)
 
-find_package(libgit2 REQUIRED)
-find_package(Qt5 REQUIRED
+find_package(libgit2 0.27 REQUIRED)
+find_package(Qt5 5.12 REQUIRED
   COMPONENTS Widgets
 )
 
 add_subdirectory(app)
+
+include(FeatureSummary)
+feature_summary(WHAT ALL)
