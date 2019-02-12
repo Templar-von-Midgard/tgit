@@ -1,6 +1,7 @@
 #ifndef DIFFVIEW_HPP
 #define DIFFVIEW_HPP
 
+#include <variant>
 #include <vector>
 
 #include <QtCore/QString>
@@ -12,13 +13,18 @@ struct git_repository;
 
 class DiffView {
 public:
-  struct Line {
-    int OldLinenumber;
-    int NewLinenumber;
-    int NumberOfLine;
-    int Offset;
-    int Length;
+  struct AddedLine {
+    int LineNumber;
   };
+  struct DeletedLine {
+    int LineNumber;
+  };
+  struct ContextLine {
+    int OldLineNumber;
+    int NewLineNumber;
+  };
+
+  using Line = std::variant<AddedLine, DeletedLine, ContextLine>;
 
   struct File {
     git_oid OldId;

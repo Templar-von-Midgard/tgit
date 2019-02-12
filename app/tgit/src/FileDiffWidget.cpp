@@ -6,6 +6,14 @@
 
 #include "ui_FileDiffWidget.h"
 
+template <typename... Lambdas>
+struct overload : Lambdas... {
+  using Lambdas::operator()...;
+};
+
+template <typename... Lambdas>
+overload(Lambdas...)->overload<Lambdas...>;
+
 FileDiffWidget::FileDiffWidget(QWidget* parent) : QSplitter(parent), Ui(new Ui::FileDiffWidget) {
   Ui->setupUi(this);
 }
@@ -36,33 +44,22 @@ void FileDiffWidget::refresh() {
 }
 
 void FileDiffWidget::highlightLines() {
+  auto visitor =
+      overload{[this](DiffView::AddedLine line) {
+                 QTextCursor newCursor{Ui->NewFileContents->document()->findBlockByLineNumber(line.LineNumber - 1)};
+                 auto newFormat = newCursor.blockFormat();
+                 QColor background{Qt::darkGreen};
+                 newFormat.setBackground(background.darker(150));
+                 newCursor.setBlockFormat(newFormat);
+               },
+               [this](DiffView::DeletedLine line) {
+                 QTextCursor oldCursor{Ui->OldFileContents->document()->findBlockByLineNumber(line.LineNumber - 1)};
+                 auto oldFormat = oldCursor.blockFormat();
+                 oldFormat.setBackground(QColor{Qt::darkRed}.darker(150));
+                 oldCursor.setBlockFormat(oldFormat);
+               },
+               [](DiffView::ContextLine) {}};
   for (const auto& line : CurrentFile->Lines) {
-    if (line.OldLinenumber > 0 && line.NewLinenumber <= 0) {
-      QTextCursor oldCursor{Ui->OldFileContents->document()->findBlockByLineNumber(line.OldLinenumber - 1)};
-      auto oldFormat = oldCursor.blockFormat();
-      oldFormat.setBackground(QColor{Qt::darkRed}.darker(150));
-      oldCursor.setBlockFormat(oldFormat);
-    } else if (line.NewLinenumber > 0 && line.OldLinenumber <= 0) {
-      QTextCursor newCursor{Ui->NewFileContents->document()->findBlockByLineNumber(line.NewLinenumber - 1)};
-      auto newFormat = newCursor.blockFormat();
-      QColor background{Qt::darkGreen};
-      newFormat.setBackground(background.darker(150));
-      newCursor.setBlockFormat(newFormat);
-    } else if (line.NewLinenumber > 0 && line.OldLinenumber > 0) {
-      auto oldBlock = Ui->OldFileContents->document()->findBlockByLineNumber(line.OldLinenumber - 1);
-      auto newBlock = Ui->NewFileContents->document()->findBlockByLineNumber(line.NewLinenumber - 1);
-      if (oldBlock.text() == newBlock.text()) {
-        continue;
-      }
-      QTextCursor oldCursor{oldBlock};
-      auto oldFormat = oldCursor.blockFormat();
-      oldFormat.setBackground(QColor{Qt::darkRed}.darker(150));
-      oldCursor.setBlockFormat(oldFormat);
-      QTextCursor newCursor{newBlock};
-      auto newFormat = newCursor.blockFormat();
-      QColor background{Qt::darkGreen};
-      newFormat.setBackground(background.darker(150));
-      newCursor.setBlockFormat(newFormat);
-    }
+    std::visit(visitor, line);
   }
 }

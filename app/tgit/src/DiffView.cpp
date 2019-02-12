@@ -37,18 +37,19 @@ int diffLineCallback(const git_diff_delta* delta, const git_diff_hunk* hunk, con
   auto& file = *std::find_if(files->rbegin(), files->rend(), [delta](const File& file) {
     return file.OldName == delta->old_file.path && file.NewName == delta->new_file.path;
   });
-  if (diffLine->origin == GIT_DIFF_LINE_CONTEXT) {
-    return 0;
+  switch (diffLine->origin) {
+  case GIT_DIFF_LINE_ADDITION:
+    file.Lines.emplace_back(DiffView::AddedLine{diffLine->new_lineno});
+    break;
+  case GIT_DIFF_LINE_DELETION:
+    file.Lines.emplace_back(DiffView::DeletedLine{diffLine->old_lineno});
+    break;
+  case GIT_DIFF_LINE_CONTEXT:
+    file.Lines.emplace_back(DiffView::ContextLine{diffLine->old_lineno, diffLine->new_lineno});
+    break;
+  default:
+    break;
   }
-  if (diffLine->num_lines <= 0) {
-    return 0;
-  }
-  auto& line = file.Lines.emplace_back();
-  line.OldLinenumber = diffLine->old_lineno;
-  line.NewLinenumber = diffLine->new_lineno;
-  line.NumberOfLine = diffLine->num_lines;
-  line.Offset = diffLine->content_offset;
-  line.Length = diffLine->content_len;
   return 0;
 }
 static_assert(std::is_convertible_v<decltype(diffLineCallback), git_diff_line_cb>, "");
