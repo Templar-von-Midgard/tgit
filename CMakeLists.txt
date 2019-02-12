@@ -30,6 +30,7 @@ find_package(Qt5 5.12 REQUIRED
   COMPONENTS Widgets
 )
 
+add_subdirectory(lib)
 add_subdirectory(app)
 
 include(FeatureSummary)

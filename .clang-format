@@ -15,13 +15,25 @@ AllowShortBlocksOnASingleLine: false
 SortIncludes: true
 IncludeBlocks: Regroup
 IncludeCategories:
+  # C++ standard headers
   - Regex: '<c[^/]*>'
     Priority: 2
-  - Regex: '<[^/]*>'
+  - Regex: '<[^/.]*>'
     Priority: 2
+  # Qt
   - Regex: '<Qt.*>'
     Priority: 3
+  # libgit2
+  - Regex: '<git2/'
+    Priority: 4
+  # Project specific:
+  - Regex: '<stx/.*>'
+    Priority: 50
+  # private headers
   - Regex: '".*"'
     Priority: 99
+  # misc libraries
+  - Regex: '<.*>'
+    Priority: 20
 
 SortUsingDeclarations: true

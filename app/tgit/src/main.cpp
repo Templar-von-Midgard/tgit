@@ -3,9 +3,9 @@
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 
-#include "TGitMainWindow.hpp"
-
 #include <git2/global.h>
+
+#include "TGitMainWindow.hpp"
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);

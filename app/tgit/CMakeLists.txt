@@ -23,6 +23,7 @@ add_classes(tgit
 target_link_libraries(tgit
   PRIVATE git::libgit2
           Qt5::Widgets
+          stx
 )
 target_include_directories(tgit
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src

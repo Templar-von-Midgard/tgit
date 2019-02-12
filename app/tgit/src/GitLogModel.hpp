@@ -5,9 +5,9 @@
 
 #include <QtCore/QAbstractTableModel>
 
-#include "GraphRow.hpp"
-
 #include <git2/oid.h>
+
+#include "GraphRow.hpp"
 
 struct git_repository;
 struct git_revwalk;

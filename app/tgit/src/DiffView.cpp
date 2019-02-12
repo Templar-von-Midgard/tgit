@@ -1,10 +1,10 @@
 #include "DiffView.hpp"
 
-#include "GitUtils.hpp"
-
 #include <git2/blob.h>
 #include <git2/object.h>
 #include <git2/repository.h>
+
+#include "GitUtils.hpp"
 
 namespace {
 

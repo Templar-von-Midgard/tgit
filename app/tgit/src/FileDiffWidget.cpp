@@ -7,15 +7,9 @@
 #include <QtGui/QTextCursor>
 #include <QtWidgets/QScrollBar>
 
+#include <stx/overload.hpp>
+
 #include "ui_FileDiffWidget.h"
-
-template <typename... Lambdas>
-struct overload : Lambdas... {
-  using Lambdas::operator()...;
-};
-
-template <typename... Lambdas>
-overload(Lambdas...)->overload<Lambdas...>;
 
 FileDiffWidget::FileDiffWidget(QWidget* parent) : QSplitter(parent), Ui(new Ui::FileDiffWidget) {
   Ui->setupUi(this);
@@ -80,7 +74,7 @@ void FileDiffWidget::refresh() {
 }
 
 void FileDiffWidget::highlightLines() {
-  auto visitor = overload{
+  auto visitor = stx::overload{
       [this](DiffView::AddedLine line) {
         if (LineMapping.empty()) {
           LineMapping.push_back({Mapping::Addition, {0, 0}, {line.LineNumber, line.LineNumber}});

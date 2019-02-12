@@ -2,6 +2,8 @@
 
 #include <QtGui/QBrush>
 
+#include <stx/overload.hpp>
+
 #include "DiffView.hpp"
 
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
@@ -84,7 +86,23 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
     return file.NewName;
   case 2:
     if (!added && !deleted) {
-      return static_cast<int>(file.Lines.size());
+      int additions = 0;
+      int deletions = 0;
+      auto visitor = stx::overload{[&additions](DiffView::AddedLine) { ++additions; },
+                                   [&deletions](DiffView::DeletedLine) { ++deletions; }, [](DiffView::ContextLine) {}};
+      for (auto line : file.Lines) {
+        std::visit(visitor, line);
+      }
+      if (additions > 0 && deletions > 0) {
+        return QStringLiteral("-%1 +%2").arg(deletions).arg(additions);
+      }
+      if (additions > 0) {
+        return QStringLiteral("+%1").arg(additions);
+      }
+      if (deletions > 0) {
+        return QStringLiteral("-%1").arg(deletions);
+      }
+      return "";
     }
     return "";
   }

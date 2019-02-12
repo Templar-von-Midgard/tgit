@@ -2,13 +2,13 @@
 
 #include <utility>
 
-#include "DiffView.hpp"
-#include "GitUtils.hpp"
-
 #include <git2/buffer.h>
 #include <git2/commit.h>
 #include <git2/diff.h>
 #include <git2/tree.h>
+
+#include "DiffView.hpp"
+#include "GitUtils.hpp"
 
 QString CommitView::shortHash() const noexcept {
   return withCommit(Oid, Repository, [](git_commit* commit) {
