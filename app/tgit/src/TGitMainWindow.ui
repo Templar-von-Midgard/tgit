@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>tgit</string>
+   <string>History</string>
   </property>
   <widget class="QSplitter" name="DiffSplitter">
    <property name="orientation">

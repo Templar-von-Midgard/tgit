@@ -9,6 +9,9 @@
 
 int main(int argc, char* argv[]) {
   QApplication app(argc, argv);
+  app.setApplicationName("tgit");
+  app.setApplicationDisplayName("TGit");
+  app.setApplicationVersion("0.0.1");
   qSetMessagePattern("%{if-category}%{category}: %{endif}"
                      "%{if-debug}%{function} - %{endif}"
                      "%{message}");
