@@ -3,6 +3,10 @@
 
 #include <array>
 #include <cstddef>
+#include <string>
+#include <string_view>
+
+struct git_oid;
 
 namespace gitpp {
 
@@ -13,6 +17,9 @@ public:
 
   const RawType& bytes() const noexcept;
   std::string_view string() const noexcept;
+
+  git_oid* handle() noexcept;
+  const git_oid* handle() const noexcept;
 
 private:
   RawType Raw;
