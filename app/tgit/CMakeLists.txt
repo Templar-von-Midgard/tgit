@@ -24,6 +24,7 @@ target_link_libraries(tgit
   PRIVATE git::libgit2
           Qt5::Widgets
           stx
+          gitpp
 )
 target_include_directories(tgit
   PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
