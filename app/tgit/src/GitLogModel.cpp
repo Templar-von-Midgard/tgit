@@ -2,10 +2,6 @@
 
 #include <array>
 
-#include <git2/commit.h>
-#include <git2/repository.h>
-#include <git2/revwalk.h>
-
 #include <gitpp/Commit.hpp>
 
 namespace {

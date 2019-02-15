@@ -6,8 +6,6 @@
 
 #include <QtCore/QAbstractTableModel>
 
-#include <git2/oid.h>
-
 #include <gitpp/ObjectId.hpp>
 #include <gitpp/Repository.hpp>
 #include <gitpp/RevisionWalker.hpp>
