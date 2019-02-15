@@ -25,9 +25,9 @@ public:
 
   explicit RevisionWalker(Repository& repo, unsigned int) noexcept;
 
-  void pushHead();
+  void pushHead() noexcept;
 
-  Commit current() const;
+  const ObjectId& current() const noexcept;
   bool next() noexcept;
 
   RevisionWalkIterator begin() noexcept;
@@ -44,9 +44,9 @@ private:
 };
 
 struct RevisionWalkIterator {
-  using value_type = Commit;
-  using reference = Commit;
-  using pointer = void;
+  using value_type = ObjectId;
+  using reference = const value_type&;
+  using pointer = const value_type*;
 
   RevisionWalkIterator() noexcept = default;
   explicit RevisionWalkIterator(RevisionWalker&) noexcept;
@@ -58,6 +58,7 @@ struct RevisionWalkIterator {
   bool operator!=(const RevisionWalkIterator& other) const;
 
   reference operator*() noexcept;
+  pointer operator->() noexcept;
 
   RevisionWalkIterator& operator++() noexcept;
 

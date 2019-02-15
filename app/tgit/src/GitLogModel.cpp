@@ -119,10 +119,13 @@ void GitLogModel::reset(gitpp::Repository repository, gitpp::RevisionWalker revi
 
 void GitLogModel::load() {
   RevisionWalker->next();
-  for (auto currentCommit : *RevisionWalker) {
-    auto currentId = currentCommit.id();
+  for (auto currentId : *RevisionWalker) {
+    auto currentCommit = gitpp::Commit ::fromId(*Repository, currentId);
+    if (!currentCommit) {
+      break;
+    }
     auto oldMapping = computeDestinationMapping(currentId, PreviousEdges);
-    PreviousEdges = computeEdges(currentCommit, PreviousEdges);
+    PreviousEdges = computeEdges(*currentCommit, PreviousEdges);
     auto newMapping = computeDestinationMapping(currentId, PreviousEdges);
     auto& [commitIndex, paths] = Graph.emplace_back(GraphRow{-1, {}});
     commitIndex = indexOf(PreviousEdges, [&currentId](const auto& edge) { return currentId == edge.Source; });

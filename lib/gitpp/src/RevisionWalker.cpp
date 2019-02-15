@@ -26,14 +26,12 @@ RevisionWalker::RevisionWalker(Repository& repo, unsigned int sort) noexcept
   git_revwalk_sorting(Handle.get(), sort);
 }
 
-void RevisionWalker::pushHead() {
+void RevisionWalker::pushHead() noexcept {
   git_revwalk_push_head(Handle.get());
 }
 
-Commit RevisionWalker::current() const {
-  git_commit* commitHandle;
-  git_commit_lookup(&commitHandle, git_revwalk_repository(Handle.get()), Current.handle());
-  return Commit::fromHandle(commitHandle);
+const ObjectId& RevisionWalker::current() const noexcept {
+  return Current;
 }
 
 bool RevisionWalker::next() noexcept {
@@ -64,6 +62,10 @@ bool RevisionWalkIterator::operator!=(const RevisionWalkIterator& other) const {
 
 RevisionWalkIterator::reference RevisionWalkIterator::operator*() noexcept {
   return Walker->current();
+}
+
+RevisionWalkIterator::pointer RevisionWalkIterator::operator->() noexcept {
+  return &Walker->current();
 }
 
 RevisionWalkIterator& RevisionWalkIterator::operator++() noexcept {
