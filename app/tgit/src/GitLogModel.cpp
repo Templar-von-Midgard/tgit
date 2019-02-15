@@ -133,9 +133,9 @@ void GitLogModel::load() {
       commitIndex = 0;
     }
     for (const auto& [src, dest] : PreviousEdges) {
-      int sourceLane = indexOf(oldMapping, dest);
+      int sourceLane = indexOf(oldMapping, src);
       if (sourceLane == -1) {
-        sourceLane = indexOf(oldMapping, src);
+        sourceLane = indexOf(oldMapping, dest);
       }
       if (sourceLane == -1) {
         std::abort();
