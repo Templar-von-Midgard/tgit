@@ -45,15 +45,17 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
             Ui->CommitDetails->setCommit(view);
             auto parents = commit->parents();
             auto rightTree = *gitpp::Tree::fromCommit(*commit);
-            if (parents.empty()) {
-              gitpp::Diff::create(nullptr, &rightTree);
-            } else {
-              auto leftTree = *gitpp::Tree::fromCommit(parents.front());
-              gitpp::Diff::create(&leftTree, &rightTree);
-            }
+            gitpp::Diff diff = [&] {
+              if (parents.empty()) {
+                return gitpp::Diff::create(nullptr, &rightTree);
+              } else {
+                auto leftTree = *gitpp::Tree::fromCommit(parents.front());
+                return gitpp::Diff::create(&leftTree, &rightTree);
+              }
+            }();
             // CurrentDiff = view.diff();
-            diffModel->setDiff(&*CurrentDiff);
-            // Ui->DiffOverview->resizeColumnsToContents();
+            diffModel->setDiff(diff.files());
+            Ui->DiffOverview->resizeColumnsToContents();
             // Ui->FileDiff->setDiff(&*CurrentDiff);
             // Ui->FileDiff->setFile(&CurrentDiff->files().front());
           });

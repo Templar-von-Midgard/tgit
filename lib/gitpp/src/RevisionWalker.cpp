@@ -46,7 +46,7 @@ RevisionWalkIterator RevisionWalker::end() noexcept {
   return {};
 }
 
-RevisionWalker::RevisionWalker(git_revwalk* handle) noexcept : Handle(handle), Current{{}} {
+RevisionWalker::RevisionWalker(git_revwalk* handle) noexcept : Handle(handle), Current{ObjectId::RawType{}} {
 }
 
 RevisionWalkIterator::RevisionWalkIterator(RevisionWalker& walker) noexcept : Walker(&walker) {

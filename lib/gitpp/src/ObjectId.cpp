@@ -3,10 +3,15 @@
 #include <git2/oid.h>
 
 static_assert(sizeof(gitpp::ObjectId::RawType) == sizeof(git_oid), "");
+static_assert(std::is_move_assignable_v<gitpp::ObjectId>, "");
+static_assert(std::is_move_constructible_v<gitpp::ObjectId>, "");
 
 namespace gitpp {
 
 ObjectId::ObjectId(gitpp::ObjectId::RawType raw) noexcept : Raw(std::move(raw)) {
+}
+
+ObjectId::ObjectId(const git_oid* raw) noexcept : Raw(*reinterpret_cast<const RawType*>(raw)) {
 }
 
 const ObjectId::RawType& ObjectId::bytes() const noexcept {

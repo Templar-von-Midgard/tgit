@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#include <gitpp/ObjectId.hpp>
+
 struct git_diff;
 
 namespace gitpp {
@@ -17,7 +19,9 @@ public:
   enum class FileStatus { Added, Deleted, Modified, Renamed, Copied };
   struct File {
     FileStatus Status;
+    std::optional<ObjectId> LeftId;
     std::string LeftPath;
+    std::optional<ObjectId> RightId;
     std::string RightPath;
   };
   using FileList = std::vector<File>;

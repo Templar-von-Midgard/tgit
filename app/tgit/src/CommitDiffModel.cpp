@@ -2,24 +2,19 @@
 
 #include <QtGui/QBrush>
 
-#include <stx/overload.hpp>
-
 #include "DiffView.hpp"
 
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
-void CommitDiffModel::setDiff(DiffView* diff) {
+void CommitDiffModel::setDiff(gitpp::Diff::FileList diff) {
   beginResetModel();
-  Diff = diff;
+  Files = std::move(diff);
   endResetModel();
 }
 
 int CommitDiffModel::rowCount(const QModelIndex& parent) const {
-  if (Diff != nullptr) {
-    return Diff->files().size();
-  }
-  return {};
+  return Files.size();
 }
 
 int CommitDiffModel::columnCount(const QModelIndex& parent) const {
@@ -45,65 +40,55 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
   if (role != Qt::DisplayRole && role != Qt::BackgroundRole) {
     return {};
   }
-  const auto& file = Diff->files()[index.row()];
-  bool deleted = file.NewName.isEmpty();
-  bool added = file.OldName.isEmpty();
-  bool renamed = !added && !deleted && file.OldName != file.NewName;
+  const auto& file = Files[index.row()];
+  using FileStatus = gitpp::Diff::FileStatus;
   if (role == Qt::BackgroundRole) {
-    if (deleted) {
-      return QBrush(Qt::darkRed);
-    }
-    if (added) {
+    switch (file.Status) {
+    case FileStatus::Added:
       return QBrush(Qt::darkGreen);
-    }
-    if (renamed) {
+    case FileStatus::Deleted:
+      return QBrush(Qt::darkRed);
+    case FileStatus::Copied:
+      return QBrush(Qt::darkGreen);
+    case FileStatus::Renamed:
       return QBrush(Qt::darkYellow);
+    case FileStatus::Modified:
+    default:
+      return {};
     }
-    return {};
   }
   switch (index.column()) {
   case 0:
-    if (deleted) {
-      return "-";
+    switch (file.Status) {
+    case FileStatus::Added:
+      return "A";
+    case FileStatus::Deleted:
+      return "D";
+    case FileStatus::Copied:
+      return "C";
+    case FileStatus::Renamed:
+      return "R";
+    case FileStatus::Modified:
+      return "M";
+    default:
+      std::abort();
     }
-    if (added) {
-      return "+";
-    }
-    if (renamed) {
-      return "->";
-    }
-    return "*";
   case 1:
-    if (added) {
-      return file.NewName;
+    switch (file.Status) {
+    case FileStatus::Deleted:
+      return QString::fromStdString(file.LeftPath);
+    case FileStatus::Renamed:
+      return QStringLiteral("%1 -> %2")
+          .arg(QString::fromStdString(file.LeftPath))
+          .arg(QString::fromStdString(file.RightPath));
+    case FileStatus::Added:
+    case FileStatus::Modified:
+    case FileStatus::Copied:
+      return QString::fromStdString(file.RightPath);
+    default:
+      std::abort();
     }
-    if (deleted) {
-      return file.OldName;
-    }
-    if (renamed) {
-      return QStringLiteral("%1 -> %2").arg(file.OldName).arg(file.NewName);
-    }
-    return file.NewName;
   case 2:
-    if (!added && !deleted) {
-      int additions = 0;
-      int deletions = 0;
-      auto visitor = stx::overload{[&additions](DiffView::AddedLine) { ++additions; },
-                                   [&deletions](DiffView::DeletedLine) { ++deletions; }, [](DiffView::ContextLine) {}};
-      for (auto line : file.Lines) {
-        std::visit(visitor, line);
-      }
-      if (additions > 0 && deletions > 0) {
-        return QStringLiteral("-%1 +%2").arg(deletions).arg(additions);
-      }
-      if (additions > 0) {
-        return QStringLiteral("+%1").arg(additions);
-      }
-      if (deletions > 0) {
-        return QStringLiteral("-%1").arg(deletions);
-      }
-      return "";
-    }
     return "";
   }
   return {};

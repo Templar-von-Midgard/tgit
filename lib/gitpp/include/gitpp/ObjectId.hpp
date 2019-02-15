@@ -14,6 +14,7 @@ class ObjectId {
 public:
   using RawType = std::array<std::byte, 20>;
   explicit ObjectId(RawType raw) noexcept;
+  explicit ObjectId(const git_oid* raw) noexcept;
 
   const RawType& bytes() const noexcept;
   std::string_view string() const noexcept;

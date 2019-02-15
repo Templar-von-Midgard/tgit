@@ -21,20 +21,26 @@ int fileCallback(const git_diff_delta* delta, float progress, void* capture) {
   switch (delta->status) {
   case GIT_DELTA_ADDED:
     file.Status = gitpp::Diff::FileStatus::Added;
+    file.RightId = gitpp::ObjectId{&delta->new_file.id};
     file.RightPath = rightPath;
     break;
   case GIT_DELTA_DELETED:
     file.Status = gitpp::Diff::FileStatus::Deleted;
+    file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
     break;
   case GIT_DELTA_RENAMED:
     file.Status = gitpp::Diff::FileStatus::Renamed;
+    file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
+    file.RightId = gitpp::ObjectId{&delta->new_file.id};
     file.RightPath = rightPath;
     break;
   case GIT_DELTA_COPIED:
     file.Status = gitpp::Diff::FileStatus::Copied;
+    file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
+    file.RightId = gitpp::ObjectId{&delta->new_file.id};
     file.RightPath = rightPath;
     break;
   case GIT_DELTA_MODIFIED:
