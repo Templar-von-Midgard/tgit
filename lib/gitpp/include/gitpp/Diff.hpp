@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <optional>
+#include <scoped_allocator>
 #include <string>
 #include <vector>
 
@@ -30,7 +31,7 @@ public:
   Diff& operator=(Diff&&) noexcept = default;
   ~Diff();
 
-  static Diff create(const Tree* lhs, const Tree* rhs) noexcept;
+  static Diff create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths = {}) noexcept;
 
   const FileList& files() const noexcept {
     return Files;

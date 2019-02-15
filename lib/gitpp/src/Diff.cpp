@@ -1,5 +1,6 @@
 #include "Diff.hpp"
 
+#include <algorithm>
 #include <cassert>
 
 #include <git2/diff.h>
@@ -62,10 +63,16 @@ namespace gitpp {
 
 Diff::~Diff() = default;
 
-Diff Diff::create(const Tree* lhs, const Tree* rhs) noexcept {
+Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths) noexcept {
   assert(lhs != nullptr || rhs != nullptr);
   git_diff* handle = nullptr;
   git_diff_options options = GIT_DIFF_OPTIONS_INIT;
+  std::vector<char*> paths_(paths.size(), nullptr);
+  std::transform(paths.begin(), paths.end(), paths_.begin(), [](std::string& str) -> char* { return str.data(); });
+  if (!paths.empty()) {
+    options.pathspec.strings = paths_.data();
+    options.pathspec.count = paths.size();
+  }
   if (lhs == nullptr) {
     git_diff_tree_to_tree(&handle, git_tree_owner(rhs->handle()), nullptr, rhs->handle(), &options);
   } else if (rhs == nullptr) {
