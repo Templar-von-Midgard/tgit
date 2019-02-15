@@ -8,6 +8,8 @@
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QTableView>
 
+#include <gitpp/Commit.hpp>
+
 #include "CommitDetailsWidget.hpp"
 #include "CommitDiffModel.hpp"
 #include "CommitView.hpp"
@@ -35,13 +37,15 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
 
   connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
           [this, modelAdaptor, diffModel](const QModelIndex& current, const auto&) {
-            CommitView commit{Model->repository(), modelAdaptor->mapToSource(current).data().value<const git_oid*>()};
-            Ui->CommitDetails->setCommit(commit);
-            CurrentDiff = commit.diff();
+            auto commit = gitpp::Commit::fromId(
+                *Model->repository(), *modelAdaptor->mapToSource(current).data().value<const gitpp::ObjectId*>());
+            CommitView view{*commit};
+            Ui->CommitDetails->setCommit(view);
+            // CurrentDiff = view.diff();
             diffModel->setDiff(&*CurrentDiff);
-            Ui->DiffOverview->resizeColumnsToContents();
-            Ui->FileDiff->setDiff(&*CurrentDiff);
-            Ui->FileDiff->setFile(&CurrentDiff->files().front());
+            // Ui->DiffOverview->resizeColumnsToContents();
+            // Ui->FileDiff->setDiff(&*CurrentDiff);
+            // Ui->FileDiff->setFile(&CurrentDiff->files().front());
           });
   connect(
       Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,

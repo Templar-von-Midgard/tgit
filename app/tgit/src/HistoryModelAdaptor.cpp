@@ -2,6 +2,8 @@
 
 #include <QtCore/QDateTime>
 
+#include <gitpp/Commit.hpp>
+
 #include "CommitView.hpp"
 #include "GitLogModel.hpp"
 
@@ -46,10 +48,11 @@ QVariant HistoryModelAdaptor::data(const QModelIndex& index, int role) const {
   if (role != Qt::DisplayRole) {
     return {};
   }
-  CommitView view{logModel->repository(), sourceIndex.data().value<const git_oid*>()};
+  auto commit = gitpp::Commit::fromId(*logModel->repository(), *sourceIndex.data().value<const gitpp::ObjectId*>());
+  CommitView view{*commit};
   switch (index.column()) {
   case 0:
-    return view.shortMessage();
+    return view.summary();
   case 1:
     return view.creation();
   case 2:
