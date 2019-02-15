@@ -14,7 +14,9 @@ class Tree;
 
 class Diff {
 public:
+  enum class FileStatus { Added, Deleted, Modified, Renamed, Copied };
   struct File {
+    FileStatus Status;
     std::string LeftPath;
     std::string RightPath;
   };
