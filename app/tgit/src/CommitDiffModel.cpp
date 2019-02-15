@@ -7,7 +7,7 @@
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
-void CommitDiffModel::setDiff(gitpp::Diff::FileList diff) {
+void CommitDiffModel::setDiff(gitpp::DeltaList diff) {
   beginResetModel();
   Files = std::move(diff);
   endResetModel();
@@ -41,18 +41,18 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
     return {};
   }
   const auto& file = Files[index.row()];
-  using FileStatus = gitpp::Diff::FileStatus;
+  using gitpp::DeltaStatus;
   if (role == Qt::BackgroundRole) {
     switch (file.Status) {
-    case FileStatus::Added:
+    case DeltaStatus::Added:
       return QBrush(Qt::darkGreen);
-    case FileStatus::Deleted:
+    case DeltaStatus::Deleted:
       return QBrush(Qt::darkRed);
-    case FileStatus::Copied:
+    case DeltaStatus::Copied:
       return QBrush(Qt::darkGreen);
-    case FileStatus::Renamed:
+    case DeltaStatus::Renamed:
       return QBrush(Qt::darkYellow);
-    case FileStatus::Modified:
+    case DeltaStatus::Modified:
     default:
       return {};
     }
@@ -60,30 +60,30 @@ QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
   switch (index.column()) {
   case 0:
     switch (file.Status) {
-    case FileStatus::Added:
+    case DeltaStatus::Added:
       return "A";
-    case FileStatus::Deleted:
+    case DeltaStatus::Deleted:
       return "D";
-    case FileStatus::Copied:
+    case DeltaStatus::Copied:
       return "C";
-    case FileStatus::Renamed:
+    case DeltaStatus::Renamed:
       return "R";
-    case FileStatus::Modified:
+    case DeltaStatus::Modified:
       return "M";
     default:
       std::abort();
     }
   case 1:
     switch (file.Status) {
-    case FileStatus::Deleted:
+    case DeltaStatus::Deleted:
       return QString::fromStdString(file.LeftPath);
-    case FileStatus::Renamed:
+    case DeltaStatus::Renamed:
       return QStringLiteral("%1 -> %2")
           .arg(QString::fromStdString(file.LeftPath))
           .arg(QString::fromStdString(file.RightPath));
-    case FileStatus::Added:
-    case FileStatus::Modified:
-    case FileStatus::Copied:
+    case DeltaStatus::Added:
+    case DeltaStatus::Modified:
+    case DeltaStatus::Copied:
       return QString::fromStdString(file.RightPath);
     default:
       std::abort();

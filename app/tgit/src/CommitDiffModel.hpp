@@ -12,7 +12,7 @@ class CommitDiffModel : public QAbstractTableModel {
 public:
   explicit CommitDiffModel(QObject* parent = nullptr);
 
-  void setDiff(gitpp::Diff::FileList diff);
+  void setDiff(gitpp::DeltaList diff);
 
   int rowCount(const QModelIndex& parent = {}) const override;
   int columnCount(const QModelIndex& parent = {}) const override;
@@ -20,7 +20,7 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
 private:
-  gitpp::Diff::FileList Files;
+  gitpp::DeltaList Files;
 };
 
 #endif // COMMITDIFFMODEL_HPP

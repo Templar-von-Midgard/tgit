@@ -17,28 +17,28 @@ int fileCallback(const git_diff_delta* delta, float progress, void* capture) {
   auto rightPath = delta->new_file.path;
   assert(leftPath != nullptr || rightPath != nullptr);
 
-  auto files = reinterpret_cast<std::vector<gitpp::Diff::File>*>(capture);
+  auto files = reinterpret_cast<gitpp::DeltaList*>(capture);
   auto& file = files->emplace_back();
   switch (delta->status) {
   case GIT_DELTA_ADDED:
-    file.Status = gitpp::Diff::FileStatus::Added;
+    file.Status = gitpp::DeltaStatus::Added;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
     file.RightPath = rightPath;
     break;
   case GIT_DELTA_DELETED:
-    file.Status = gitpp::Diff::FileStatus::Deleted;
+    file.Status = gitpp::DeltaStatus::Deleted;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
     break;
   case GIT_DELTA_RENAMED:
-    file.Status = gitpp::Diff::FileStatus::Renamed;
+    file.Status = gitpp::DeltaStatus::Renamed;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
     file.RightPath = rightPath;
     break;
   case GIT_DELTA_COPIED:
-    file.Status = gitpp::Diff::FileStatus::Copied;
+    file.Status = gitpp::DeltaStatus::Copied;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
     file.LeftPath = leftPath;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
@@ -46,7 +46,7 @@ int fileCallback(const git_diff_delta* delta, float progress, void* capture) {
     break;
   case GIT_DELTA_MODIFIED:
   default:
-    file.Status = gitpp::Diff::FileStatus::Modified;
+    file.Status = gitpp::DeltaStatus::Modified;
     file.LeftPath = leftPath;
     file.RightPath = rightPath;
     break;
@@ -86,15 +86,13 @@ Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> pat
   git_diff_find_options findOptions = GIT_DIFF_FIND_OPTIONS_INIT;
   findOptions.flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_COPIES | GIT_DIFF_FIND_FOR_UNTRACKED;
   git_diff_find_similar(handle, &findOptions);
-  std::vector<File> files;
-  // git_diff_foreach(handle, fileCallback, nullptr, nullptr, nullptr, &files);
-  return Diff{handle, std::move(files)};
+  return Diff{handle};
 }
 
-Diff::Diff(git_diff* handle, std::vector<File>&& files) noexcept : Handle(handle), Files(std::move(files)) {
+Diff::Diff(git_diff* handle) noexcept : Handle(handle) {
   int deltaCount = git_diff_num_deltas(handle);
   for (int i = 0; i < deltaCount; ++i) {
-    fileCallback(git_diff_get_delta(handle, i), static_cast<float>(i) / deltaCount, &Files);
+    fileCallback(git_diff_get_delta(handle, i), static_cast<float>(i) / deltaCount, &Deltas);
   }
 }
 
