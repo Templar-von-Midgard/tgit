@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
 
 set(SOURCES
+  include/gitpp/Context.hpp
+  src/Context.cpp
   include/gitpp/ObjectId.hpp
   src/ObjectId.cpp
   include/gitpp/Repository.hpp
