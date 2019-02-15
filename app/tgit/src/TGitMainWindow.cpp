@@ -9,6 +9,8 @@
 #include <QtWidgets/QTableView>
 
 #include <gitpp/Commit.hpp>
+#include <gitpp/Diff.hpp>
+#include <gitpp/Tree.hpp>
 
 #include "CommitDetailsWidget.hpp"
 #include "CommitDiffModel.hpp"
@@ -41,6 +43,14 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
                 *Model->repository(), *modelAdaptor->mapToSource(current).data().value<const gitpp::ObjectId*>());
             CommitView view{*commit};
             Ui->CommitDetails->setCommit(view);
+            auto parents = commit->parents();
+            auto rightTree = *gitpp::Tree::fromCommit(*commit);
+            if (parents.empty()) {
+              gitpp::Diff::create(nullptr, &rightTree);
+            } else {
+              auto leftTree = *gitpp::Tree::fromCommit(parents.front());
+              gitpp::Diff::create(&leftTree, &rightTree);
+            }
             // CurrentDiff = view.diff();
             diffModel->setDiff(&*CurrentDiff);
             // Ui->DiffOverview->resizeColumnsToContents();

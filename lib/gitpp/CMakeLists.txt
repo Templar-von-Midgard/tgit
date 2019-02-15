@@ -13,6 +13,8 @@ set(SOURCES
   src/Tree.cpp
   include/gitpp/RevisionWalker.hpp
   src/RevisionWalker.cpp
+  include/gitpp/Diff.hpp
+  src/Diff.cpp
 )
 
 add_library(gitpp ${SOURCES})
