@@ -15,6 +15,8 @@ set(SOURCES
   src/RevisionWalker.cpp
   include/gitpp/Diff.hpp
   src/Diff.cpp
+  include/gitpp/Blob.hpp
+  src/Blob.cpp
 )
 
 add_library(gitpp ${SOURCES})
