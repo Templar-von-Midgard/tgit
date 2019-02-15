@@ -12,50 +12,78 @@ static_assert(std::is_move_constructible_v<gitpp::Diff>, "");
 
 namespace {
 
-int fileCallback(const git_diff_delta* delta, float progress, void* capture) {
-  auto leftPath = delta->old_file.path;
-  auto rightPath = delta->new_file.path;
-  assert(leftPath != nullptr || rightPath != nullptr);
-
-  auto files = reinterpret_cast<gitpp::DeltaList*>(capture);
+template <typename DeltaT>
+int fileCallback(const git_diff_delta* delta, float progress, void* capture) noexcept {
+  auto files = reinterpret_cast<std::vector<DeltaT>*>(capture);
   auto& file = files->emplace_back();
   switch (delta->status) {
   case GIT_DELTA_ADDED:
     file.Status = gitpp::DeltaStatus::Added;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
-    file.RightPath = rightPath;
+    file.RightPath = delta->new_file.path;
     break;
   case GIT_DELTA_DELETED:
     file.Status = gitpp::DeltaStatus::Deleted;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
-    file.LeftPath = leftPath;
+    file.LeftPath = delta->old_file.path;
     break;
   case GIT_DELTA_RENAMED:
     file.Status = gitpp::DeltaStatus::Renamed;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
-    file.LeftPath = leftPath;
+    file.LeftPath = delta->old_file.path;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
-    file.RightPath = rightPath;
+    file.RightPath = delta->new_file.path;
     break;
   case GIT_DELTA_COPIED:
     file.Status = gitpp::DeltaStatus::Copied;
     file.LeftId = gitpp::ObjectId{&delta->old_file.id};
-    file.LeftPath = leftPath;
+    file.LeftPath = delta->old_file.path;
     file.RightId = gitpp::ObjectId{&delta->new_file.id};
-    file.RightPath = rightPath;
+    file.RightPath = delta->new_file.path;
     break;
   case GIT_DELTA_MODIFIED:
   default:
     file.Status = gitpp::DeltaStatus::Modified;
-    file.LeftPath = leftPath;
-    file.RightPath = rightPath;
+    file.LeftId = gitpp::ObjectId{&delta->old_file.id};
+    file.LeftPath = delta->old_file.path;
+    file.RightId = gitpp::ObjectId{&delta->new_file.id};
+    file.RightPath = delta->new_file.path;
     break;
   }
 
   return 0;
 }
 
-static_assert(std::is_convertible_v<decltype(fileCallback), git_diff_file_cb>, "");
+int lineCallback(const git_diff_delta* delta, const git_diff_hunk* hunk, const git_diff_line* diffLine,
+                 void* capture) noexcept {
+  using namespace gitpp;
+  auto files = reinterpret_cast<std::vector<DeltaDetails>*>(capture);
+  auto search =
+      std::find_if(files->rbegin(), files->rend(),
+                   [leftId = ObjectId{&delta->old_file.id}, rightId = ObjectId{&delta->new_file.id}](
+                       const DeltaDetails& file) { return file.LeftId == leftId && file.RightId == rightId; });
+  assert(search != files->rend());
+  DeltaDetails& file = *search;
+  switch (diffLine->origin) {
+  case GIT_DIFF_LINE_ADDITION:
+    file.Lines.emplace_back(DeltaDetails::AddedLine{diffLine->new_lineno});
+    break;
+  case GIT_DIFF_LINE_DELETION:
+    file.Lines.emplace_back(DeltaDetails::DeletedLine{diffLine->old_lineno});
+    break;
+  case GIT_DIFF_LINE_CONTEXT:
+    file.Lines.emplace_back(DeltaDetails::ContextLine{diffLine->old_lineno, diffLine->new_lineno});
+    break;
+  default:
+    assert(false && "Unhandled diff line origin");
+    break;
+  }
+  return 0;
+}
+
+static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::Delta>), git_diff_file_cb>, "");
+static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::DeltaDetails>), git_diff_file_cb>, "");
+static_assert(std::is_convertible_v<decltype(lineCallback), git_diff_line_cb>, "");
 
 } // namespace
 
@@ -89,10 +117,17 @@ Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> pat
   return Diff{handle};
 }
 
+std::vector<DeltaDetails> Diff::details() const noexcept {
+  std::vector<DeltaDetails> result;
+  result.reserve(Deltas.size());
+  git_diff_foreach(Handle.get(), fileCallback<DeltaDetails>, nullptr, nullptr, lineCallback, &result);
+  return result;
+}
+
 Diff::Diff(git_diff* handle) noexcept : Handle(handle) {
   int deltaCount = git_diff_num_deltas(handle);
   for (int i = 0; i < deltaCount; ++i) {
-    fileCallback(git_diff_get_delta(handle, i), static_cast<float>(i) / deltaCount, &Deltas);
+    fileCallback<Delta>(git_diff_get_delta(handle, i), static_cast<float>(i) / deltaCount, &Deltas);
   }
 }
 

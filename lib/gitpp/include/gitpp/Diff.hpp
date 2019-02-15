@@ -5,6 +5,7 @@
 #include <optional>
 #include <scoped_allocator>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include <gitpp/ObjectId.hpp>
@@ -25,6 +26,22 @@ struct Delta {
 };
 using DeltaList = std::vector<Delta>;
 
+struct DeltaDetails : Delta {
+  struct AddedLine {
+    int LineNumber;
+  };
+  struct DeletedLine {
+    int LineNumber;
+  };
+  struct ContextLine {
+    int LeftLineNumber;
+    int RightLineNumber;
+  };
+  using Line = std::variant<AddedLine, DeletedLine, ContextLine>;
+
+  std::vector<Line> Lines;
+};
+
 class Diff {
 public:
   Diff(Diff&&) noexcept = default;
@@ -36,6 +53,8 @@ public:
   const DeltaList& files() const noexcept {
     return Deltas;
   }
+
+  std::vector<DeltaDetails> details() const noexcept;
 
 private:
   explicit Diff(git_diff*) noexcept;
