@@ -8,6 +8,7 @@
 #include <QtWidgets/QSplitter>
 #include <QtWidgets/QTableView>
 
+#include <gitpp/Blob.hpp>
 #include <gitpp/Commit.hpp>
 #include <gitpp/Diff.hpp>
 #include <gitpp/Tree.hpp>
@@ -72,12 +73,31 @@ void TGitMainWindow::LogView_currentRowChanged(int row) {
   DiffModel->setDiff(diff.files());
   Ui->DiffOverview->resizeColumnsToContents();
 
-  DiffOverview_currentRowChanged(row);
+  Ui->DiffOverview->selectRow(0);
 }
 
 void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
-  auto commit = getCommit(row);
-  auto diff = gitpp::Diff::create(commit, {""});
+  auto commit = getCommit(Ui->LogView->selectionModel()->currentIndex().row());
+  auto currentIdx = DiffModel->index(row, 0);
+  auto leftFilename = currentIdx.data(CommitDiffModel::LeftFilenameRole).toString();
+  auto rightFilename = currentIdx.data(CommitDiffModel::RightFilenameRole).toString();
+  auto diff = gitpp::Diff::create(commit, {"", leftFilename.toStdString(), rightFilename.toStdString()});
+  auto details = diff.details();
+  if (!details.empty()) {
+    auto& file = details.front();
+
+    QString leftContents = "";
+    if (auto leftBlob = gitpp::Blob::fromId(*Model->repository(), file.LeftId); leftBlob) {
+      auto leftData = leftBlob->content();
+      leftContents = QString::fromUtf8(reinterpret_cast<char*>(leftData.data()), leftData.size());
+    }
+    QString rightContents = "";
+    if (auto rightBlob = gitpp::Blob::fromId(*Model->repository(), file.RightId); rightBlob) {
+      auto rightData = rightBlob->content();
+      rightContents = QString::fromUtf8(reinterpret_cast<char*>(rightData.data()), rightData.size());
+    }
+    Ui->FileDiff->setFile(details.front(), std::move(leftContents), std::move(rightContents));
+  }
 }
 
 gitpp::Commit TGitMainWindow::getCommit(int row) {

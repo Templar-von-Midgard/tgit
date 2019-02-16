@@ -37,10 +37,16 @@ QVariant CommitDiffModel::headerData(int section, Qt::Orientation orientation, i
 }
 
 QVariant CommitDiffModel::data(const QModelIndex& index, int role) const {
+  const auto& file = Files[index.row()];
+  if (role == LeftFilenameRole) {
+    return QString::fromStdString(file.LeftPath);
+  }
+  if (role == RightFilenameRole) {
+    return QString::fromStdString(file.RightPath);
+  }
   if (role != Qt::DisplayRole && role != Qt::BackgroundRole) {
     return {};
   }
-  const auto& file = Files[index.row()];
   using gitpp::DeltaStatus;
   if (role == Qt::BackgroundRole) {
     switch (file.Status) {

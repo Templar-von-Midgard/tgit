@@ -20,9 +20,9 @@ class Commit;
 enum class DeltaStatus { Added, Deleted, Modified, Renamed, Copied };
 struct Delta {
   DeltaStatus Status;
-  std::optional<ObjectId> LeftId;
+  ObjectId LeftId;
   std::string LeftPath;
-  std::optional<ObjectId> RightId;
+  ObjectId RightId;
   std::string RightPath;
 };
 using DeltaList = std::vector<Delta>;

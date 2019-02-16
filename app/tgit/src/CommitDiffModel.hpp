@@ -10,6 +10,7 @@ class DiffView;
 class CommitDiffModel : public QAbstractTableModel {
   Q_OBJECT
 public:
+  enum Roles { LeftFilenameRole = Qt::UserRole + 1, RightFilenameRole };
   explicit CommitDiffModel(QObject* parent = nullptr);
 
   void setDiff(gitpp::DeltaList diff);

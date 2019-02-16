@@ -13,17 +13,21 @@ namespace gitpp {
 class ObjectId {
 public:
   using RawType = std::array<std::byte, 20>;
+  constexpr ObjectId() noexcept = default;
   explicit ObjectId(RawType raw) noexcept;
   explicit ObjectId(const git_oid* raw) noexcept;
 
-  const RawType& bytes() const noexcept;
+  bool empty() const noexcept;
+  constexpr const RawType& bytes() const noexcept {
+    return Raw;
+  }
   std::string_view string() const noexcept;
 
   git_oid* handle() noexcept;
   const git_oid* handle() const noexcept;
 
 private:
-  RawType Raw;
+  RawType Raw = {std::byte{0}};
 };
 
 bool operator==(const ObjectId& lhs, const ObjectId& rhs) noexcept;

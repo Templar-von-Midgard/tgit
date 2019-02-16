@@ -66,6 +66,7 @@ int lineCallback(const git_diff_delta* delta, const git_diff_hunk* hunk, const g
   assert(search != files->rend());
   DeltaDetails& file = *search;
   switch (diffLine->origin) {
+
   case GIT_DIFF_LINE_ADDITION:
     file.Lines.emplace_back(DeltaDetails::AddedLine{diffLine->new_lineno});
     break;
@@ -74,6 +75,9 @@ int lineCallback(const git_diff_delta* delta, const git_diff_hunk* hunk, const g
     break;
   case GIT_DIFF_LINE_CONTEXT:
     file.Lines.emplace_back(DeltaDetails::ContextLine{diffLine->old_lineno, diffLine->new_lineno});
+    break;
+  case GIT_DIFF_LINE_ADD_EOFNL:
+  case GIT_DIFF_LINE_DEL_EOFNL:
     break;
   default:
     assert(false && "Unhandled diff line origin");
