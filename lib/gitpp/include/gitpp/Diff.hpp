@@ -15,6 +15,7 @@ struct git_diff;
 namespace gitpp {
 
 class Tree;
+class Commit;
 
 enum class DeltaStatus { Added, Deleted, Modified, Renamed, Copied };
 struct Delta {
@@ -49,6 +50,7 @@ public:
   ~Diff();
 
   static Diff create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths = {}) noexcept;
+  static Diff create(const Commit& lhs, std::vector<std::string> paths = {}) noexcept;
 
   const DeltaList& files() const noexcept {
     return Deltas;

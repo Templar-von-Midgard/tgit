@@ -5,6 +5,7 @@
 
 #include <git2/diff.h>
 
+#include "Commit.hpp"
 #include "Tree.hpp"
 
 static_assert(std::is_move_assignable_v<gitpp::Diff>, "");
@@ -85,7 +86,25 @@ static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::Delta>), git_di
 static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::DeltaDetails>), git_diff_file_cb>, "");
 static_assert(std::is_convertible_v<decltype(lineCallback), git_diff_line_cb>, "");
 
+void applyFindOptions(git_diff* diff) {
+  git_diff_find_options findOptions = GIT_DIFF_FIND_OPTIONS_INIT;
+  findOptions.flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_COPIES | GIT_DIFF_FIND_FOR_UNTRACKED;
+  git_diff_find_similar(diff, &findOptions);
+}
+
 } // namespace
+
+#define MAKE_OPTIONS(options, paths)                                                                                   \
+  auto paths##_temp = std::vector<char*>(paths.size(), nullptr);                                                       \
+  std::transform(paths.begin(), paths.end(), paths##_temp.begin(),                                                     \
+                 [](std::string& str) -> char* { return str.data(); });                                                \
+  auto options = [&paths##_temp]() {                                                                                   \
+    git_diff_options opt = GIT_DIFF_OPTIONS_INIT;                                                                      \
+    if (!paths##_temp.empty()) {                                                                                       \
+      opt.pathspec = {paths##_temp.data(), paths##_temp.size()};                                                       \
+    }                                                                                                                  \
+    return opt;                                                                                                        \
+  }();
 
 namespace gitpp {
 
@@ -93,14 +112,9 @@ Diff::~Diff() = default;
 
 Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths) noexcept {
   assert(lhs != nullptr || rhs != nullptr);
+
   git_diff* handle = nullptr;
-  git_diff_options options = GIT_DIFF_OPTIONS_INIT;
-  std::vector<char*> paths_(paths.size(), nullptr);
-  std::transform(paths.begin(), paths.end(), paths_.begin(), [](std::string& str) -> char* { return str.data(); });
-  if (!paths.empty()) {
-    options.pathspec.strings = paths_.data();
-    options.pathspec.count = paths.size();
-  }
+  MAKE_OPTIONS(options, paths);
   if (lhs == nullptr) {
     git_diff_tree_to_tree(&handle, git_tree_owner(rhs->handle()), nullptr, rhs->handle(), &options);
   } else if (rhs == nullptr) {
@@ -111,10 +125,20 @@ Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> pat
   }
   assert(handle != nullptr);
 
-  git_diff_find_options findOptions = GIT_DIFF_FIND_OPTIONS_INIT;
-  findOptions.flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_COPIES | GIT_DIFF_FIND_FOR_UNTRACKED;
-  git_diff_find_similar(handle, &findOptions);
+  applyFindOptions(handle);
   return Diff{handle};
+}
+
+Diff Diff::create(const Commit& commit, std::vector<std::string> paths) noexcept {
+  auto rightTree = Tree::fromCommit(commit);
+  assert(rightTree);
+  if (auto parents = commit.parents(); !parents.empty()) {
+    auto leftTree = Tree::fromCommit(parents.front());
+    assert(leftTree);
+    return create(&*leftTree, &*rightTree, std::move(paths));
+  } else {
+    return create(nullptr, &*rightTree, std::move(paths));
+  }
 }
 
 std::vector<DeltaDetails> Diff::details() const noexcept {

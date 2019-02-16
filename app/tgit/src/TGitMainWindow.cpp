@@ -43,16 +43,7 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
                 *Model->repository(), *modelAdaptor->mapToSource(current).data().value<const gitpp::ObjectId*>());
             CommitView view{*commit};
             Ui->CommitDetails->setCommit(view);
-            auto parents = commit->parents();
-            auto rightTree = *gitpp::Tree::fromCommit(*commit);
-            gitpp::Diff diff = [&] {
-              if (parents.empty()) {
-                return gitpp::Diff::create(nullptr, &rightTree);
-              } else {
-                auto leftTree = *gitpp::Tree::fromCommit(parents.front());
-                return gitpp::Diff::create(&leftTree, &rightTree);
-              }
-            }();
+            auto diff = gitpp::Diff::create(*commit);
             // CurrentDiff = view.diff();
             diffModel->setDiff(diff.files());
             Ui->DiffOverview->resizeColumnsToContents();
