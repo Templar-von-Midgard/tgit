@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -24,6 +24,8 @@ macro(add_classes _target)
 endmacro()
 
 project(tgit VERSION 0.0.1 LANGUAGES CXX)
+
+include(Options)
 
 find_package(libgit2 0.27 REQUIRED)
 find_package(Qt5 5.12 REQUIRED
