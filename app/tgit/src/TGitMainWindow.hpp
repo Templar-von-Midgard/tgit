@@ -6,8 +6,11 @@
 
 #include <QtWidgets/QMainWindow>
 
-#include "DiffView.hpp"
+namespace gitpp {
+class Commit;
+}
 
+class CommitDiffModel;
 class GitLogModel;
 
 namespace Ui {
@@ -27,10 +30,14 @@ signals:
 
 private slots:
   void openAction_triggered();
+  void LogView_currentRowChanged(int row);
+  void DiffOverview_currentRowChanged(int row);
 
 private:
+  gitpp::Commit getCommit(int row);
+
   GitLogModel* Model;
-  std::optional<DiffView> CurrentDiff;
+  CommitDiffModel* DiffModel;
 
   std::unique_ptr<Ui::TGitMainWindow> Ui;
 };

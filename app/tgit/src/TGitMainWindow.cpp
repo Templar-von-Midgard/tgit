@@ -34,25 +34,13 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
   modelAdaptor->setSourceModel(Model);
   Ui->LogView->setModel(modelAdaptor);
 
-  auto diffModel = new CommitDiffModel(this);
-  Ui->DiffOverview->setModel(diffModel);
+  DiffModel = new CommitDiffModel(this);
+  Ui->DiffOverview->setModel(DiffModel);
 
   connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
-          [this, modelAdaptor, diffModel](const QModelIndex& current, const auto&) {
-            auto commit = gitpp::Commit::fromId(
-                *Model->repository(), *modelAdaptor->mapToSource(current).data().value<const gitpp::ObjectId*>());
-            CommitView view{*commit};
-            Ui->CommitDetails->setCommit(view);
-            auto diff = gitpp::Diff::create(*commit);
-            // CurrentDiff = view.diff();
-            diffModel->setDiff(diff.files());
-            Ui->DiffOverview->resizeColumnsToContents();
-            // Ui->FileDiff->setDiff(&*CurrentDiff);
-            // Ui->FileDiff->setFile(&CurrentDiff->files().front());
-          });
-  connect(
-      Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
-      [this](const QModelIndex& current, const auto&) { Ui->FileDiff->setFile(&CurrentDiff->files()[current.row()]); });
+          [this](const QModelIndex& current, const auto&) { LogView_currentRowChanged(current.row()); });
+  connect(Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
+          [this](const QModelIndex& current, const auto&) { DiffOverview_currentRowChanged(current.row()); });
 }
 
 TGitMainWindow::~TGitMainWindow() = default;
@@ -74,4 +62,26 @@ void TGitMainWindow::loadRepository(const QString& path) {
 void TGitMainWindow::openAction_triggered() {
   auto repositoryPath = QFileDialog::getExistingDirectory(this, "Open Repository");
   loadRepository(repositoryPath);
+}
+
+void TGitMainWindow::LogView_currentRowChanged(int row) {
+  auto commit = getCommit(row);
+  CommitView view{commit};
+  Ui->CommitDetails->setCommit(view);
+  auto diff = gitpp::Diff::create(commit);
+  DiffModel->setDiff(diff.files());
+  Ui->DiffOverview->resizeColumnsToContents();
+
+  DiffOverview_currentRowChanged(row);
+}
+
+void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
+  auto commit = getCommit(row);
+  auto diff = gitpp::Diff::create(commit, {""});
+}
+
+gitpp::Commit TGitMainWindow::getCommit(int row) {
+  auto commit =
+      gitpp::Commit::fromId(*Model->repository(), *Model->index(row, 0).data().value<const gitpp::ObjectId*>());
+  return std::move(*commit);
 }
