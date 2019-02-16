@@ -24,5 +24,5 @@ target_link_libraries(tgit
           gitpp
 )
 target_include_directories(tgit
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src
+  PRIVATE src
 )

@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
-set(SOURCES
+add_library(gitpp)
+target_sources(gitpp PRIVATE
   include/gitpp/Context.hpp
   src/Context.cpp
   include/gitpp/ObjectId.hpp
@@ -18,8 +19,6 @@ set(SOURCES
   include/gitpp/Blob.hpp
   src/Blob.cpp
 )
-
-add_library(gitpp ${SOURCES})
 target_link_libraries(gitpp
   PRIVATE git::libgit2
 )
