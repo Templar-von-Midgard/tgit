@@ -1,23 +1,15 @@
 cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 
 add_library(gitpp)
-target_sources(gitpp PRIVATE
-  include/gitpp/Context.hpp
-  src/Context.cpp
-  include/gitpp/ObjectId.hpp
-  src/ObjectId.cpp
-  include/gitpp/Repository.hpp
-  src/Repository.cpp
-  include/gitpp/Commit.hpp
-  src/Commit.cpp
-  include/gitpp/Tree.hpp
-  src/Tree.cpp
-  include/gitpp/RevisionWalker.hpp
-  src/RevisionWalker.cpp
-  include/gitpp/Diff.hpp
-  src/Diff.cpp
-  include/gitpp/Blob.hpp
-  src/Blob.cpp
+add_classes(gitpp PRIVATE
+  Context
+  ObjectId
+  Repository
+  Commit
+  Tree
+  RevisionWalker
+  Diff
+  Blob
 )
 target_link_libraries(gitpp
   PRIVATE git::libgit2
