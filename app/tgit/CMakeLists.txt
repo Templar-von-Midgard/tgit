@@ -7,16 +7,18 @@ add_executable(tgit WIN32
   src/main.cpp
   src/GraphRow.hpp
 )
-add_classes(tgit
-  src/TGitMainWindow
-  src/GitLogModel
-  src/HistoryModelAdaptor
-  src/GraphItemDelegate
-  src/CommitView
-  src/CommitDetailsWidget
-  src/CommitDiffModel
-  src/FileDiffWidget
-  src/CodeViewer
+add_classes(tgit PRIVATE
+  GitLogModel
+  HistoryModelAdaptor
+  GraphItemDelegate
+  CommitView
+  CommitDetailsWidget
+  CommitDiffModel
+  CodeViewer
+)
+add_widgets(tgit PRIVATE
+  TGitMainWindow
+  FileDiffWidget
 )
 target_link_libraries(tgit
   PRIVATE Qt5::Widgets
