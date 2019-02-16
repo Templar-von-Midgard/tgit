@@ -1,9 +1,13 @@
 #ifndef COMMITDIFFMODEL_HPP
 #define COMMITDIFFMODEL_HPP
 
+#include <vector>
+
 #include <QtCore/QAbstractTableModel>
 
-#include <gitpp/Diff.hpp>
+namespace gitpp {
+struct Delta;
+}
 
 class DiffView;
 
@@ -12,8 +16,9 @@ class CommitDiffModel : public QAbstractTableModel {
 public:
   enum Roles { LeftFilenameRole = Qt::UserRole + 1, RightFilenameRole };
   explicit CommitDiffModel(QObject* parent = nullptr);
+  ~CommitDiffModel();
 
-  void setDiff(gitpp::DeltaList diff);
+  void setDiff(std::vector<gitpp::Delta> diff);
 
   int rowCount(const QModelIndex& parent = {}) const override;
   int columnCount(const QModelIndex& parent = {}) const override;
@@ -21,7 +26,7 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
 private:
-  gitpp::DeltaList Files;
+  std::vector<gitpp::Delta> Files;
 };
 
 #endif // COMMITDIFFMODEL_HPP

@@ -2,7 +2,6 @@
 #define TGITMAINWINDOW_HPP
 
 #include <memory>
-#include <optional>
 
 #include <QtWidgets/QMainWindow>
 
@@ -34,7 +33,7 @@ private slots:
   void DiffOverview_currentRowChanged(int row);
 
 private:
-  gitpp::Commit getCommit(int row);
+  gitpp::Commit currentCommit();
 
   GitLogModel* Model;
   CommitDiffModel* DiffModel;

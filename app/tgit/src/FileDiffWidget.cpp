@@ -7,7 +7,7 @@
 #include <QtGui/QTextCursor>
 #include <QtWidgets/QScrollBar>
 
-#include <gitpp/Diff.hpp>
+#include <gitpp/Delta.hpp>
 
 #include <stx/overload.hpp>
 

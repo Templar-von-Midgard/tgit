@@ -10,6 +10,7 @@
 
 #include <gitpp/Blob.hpp>
 #include <gitpp/Commit.hpp>
+#include <gitpp/Delta.hpp>
 #include <gitpp/Diff.hpp>
 #include <gitpp/Tree.hpp>
 
@@ -66,7 +67,7 @@ void TGitMainWindow::openAction_triggered() {
 }
 
 void TGitMainWindow::LogView_currentRowChanged(int row) {
-  auto commit = getCommit(row);
+  auto commit = currentCommit();
   CommitView view{commit};
   Ui->CommitDetails->setCommit(view);
   auto diff = gitpp::Diff::create(commit);
@@ -77,11 +78,11 @@ void TGitMainWindow::LogView_currentRowChanged(int row) {
 }
 
 void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
-  auto commit = getCommit(Ui->LogView->selectionModel()->currentIndex().row());
+  auto commit = currentCommit();
   auto currentIdx = DiffModel->index(row, 0);
   auto leftFilename = currentIdx.data(CommitDiffModel::LeftFilenameRole).toString();
   auto rightFilename = currentIdx.data(CommitDiffModel::RightFilenameRole).toString();
-  auto diff = gitpp::Diff::create(commit, {"", leftFilename.toStdString(), rightFilename.toStdString()});
+  auto diff = gitpp::Diff::create(commit, {leftFilename.toStdString(), rightFilename.toStdString()});
   auto details = diff.details();
   if (!details.empty()) {
     auto& file = details.front();
@@ -100,7 +101,8 @@ void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
   }
 }
 
-gitpp::Commit TGitMainWindow::getCommit(int row) {
+gitpp::Commit TGitMainWindow::currentCommit() {
+  int row = Ui->LogView->selectionModel()->currentIndex().row();
   auto commit =
       gitpp::Commit::fromId(*Model->repository(), *Model->index(row, 0).data().value<const gitpp::ObjectId*>());
   return std::move(*commit);

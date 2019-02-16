@@ -6,6 +6,7 @@
 #include <git2/diff.h>
 
 #include "Commit.hpp"
+#include "Delta.hpp"
 #include "Tree.hpp"
 
 static_assert(std::is_move_assignable_v<gitpp::Diff>, "");

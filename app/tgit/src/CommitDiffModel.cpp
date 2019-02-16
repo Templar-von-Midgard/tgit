@@ -2,10 +2,14 @@
 
 #include <QtGui/QBrush>
 
+#include <gitpp/Delta.hpp>
+
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
-void CommitDiffModel::setDiff(gitpp::DeltaList diff) {
+CommitDiffModel::~CommitDiffModel() = default;
+
+void CommitDiffModel::setDiff(std::vector<gitpp::Delta> diff) {
   beginResetModel();
   Files = std::move(diff);
   endResetModel();

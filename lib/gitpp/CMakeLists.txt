@@ -9,6 +9,7 @@ add_classes(gitpp PRIVATE
   Tree
   RevisionWalker
   Diff
+  Delta
   Blob
 )
 target_link_libraries(gitpp

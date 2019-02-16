@@ -17,31 +17,8 @@ namespace gitpp {
 class Tree;
 class Commit;
 
-enum class DeltaStatus { Added, Deleted, Modified, Renamed, Copied };
-struct Delta {
-  DeltaStatus Status;
-  ObjectId LeftId;
-  std::string LeftPath;
-  ObjectId RightId;
-  std::string RightPath;
-};
-using DeltaList = std::vector<Delta>;
-
-struct DeltaDetails : Delta {
-  struct AddedLine {
-    int LineNumber;
-  };
-  struct DeletedLine {
-    int LineNumber;
-  };
-  struct ContextLine {
-    int LeftLineNumber;
-    int RightLineNumber;
-  };
-  using Line = std::variant<AddedLine, DeletedLine, ContextLine>;
-
-  std::vector<Line> Lines;
-};
+struct Delta;
+struct DeltaDetails;
 
 class Diff {
 public:
@@ -52,7 +29,7 @@ public:
   static Diff create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths = {}) noexcept;
   static Diff create(const Commit& lhs, std::vector<std::string> paths = {}) noexcept;
 
-  const DeltaList& files() const noexcept {
+  const std::vector<Delta>& files() const noexcept {
     return Deltas;
   }
 
@@ -65,7 +42,7 @@ private:
     void operator()(git_diff*) noexcept;
   };
   std::unique_ptr<git_diff, deleter> Handle;
-  DeltaList Deltas;
+  std::vector<Delta> Deltas;
 };
 
 } // namespace gitpp
