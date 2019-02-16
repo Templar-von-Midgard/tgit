@@ -89,13 +89,21 @@ void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
 
     QString leftContents = "";
     if (auto leftBlob = gitpp::Blob::fromId(*Model->repository(), file.LeftId); leftBlob) {
-      auto leftData = leftBlob->content();
-      leftContents = QString::fromUtf8(reinterpret_cast<char*>(leftData.data()), leftData.size());
+      if (!leftBlob->binary()) {
+        auto leftData = leftBlob->content();
+        leftContents = QString::fromUtf8(reinterpret_cast<char*>(leftData.data()), leftData.size());
+      } else {
+        leftContents = "Binary file";
+      }
     }
     QString rightContents = "";
     if (auto rightBlob = gitpp::Blob::fromId(*Model->repository(), file.RightId); rightBlob) {
-      auto rightData = rightBlob->content();
-      rightContents = QString::fromUtf8(reinterpret_cast<char*>(rightData.data()), rightData.size());
+      if (!rightBlob->binary()) {
+        auto rightData = rightBlob->content();
+        rightContents = QString::fromUtf8(reinterpret_cast<char*>(rightData.data()), rightData.size());
+      } else {
+        rightContents = "Binary file";
+      }
     }
     Ui->FileDiff->setFile(details.front(), std::move(leftContents), std::move(rightContents));
   }
