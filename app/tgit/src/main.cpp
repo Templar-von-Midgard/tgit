@@ -3,7 +3,7 @@
 #include <QtCore/QTimer>
 #include <QtWidgets/QApplication>
 
-#include <git2/global.h>
+#include <gitpp/Context.hpp>
 
 #include "TGitMainWindow.hpp"
 
@@ -32,7 +32,6 @@ int main(int argc, char* argv[]) {
     QTimer::singleShot(0, window, [repositoryPath = *it, window] { window->loadRepository(repositoryPath); });
   }
 
-  git_libgit2_init();
-  QObject::connect(&app, &QApplication::aboutToQuit, [] { git_libgit2_shutdown(); });
+  gitpp::Context ctx;
   return app.exec();
 }

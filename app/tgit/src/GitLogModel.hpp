@@ -1,11 +1,14 @@
 #ifndef GITLOGMODEL_HPP
 #define GITLOGMODEL_HPP
 
+#include <optional>
 #include <vector>
 
 #include <QtCore/QAbstractTableModel>
 
-#include <git2/oid.h>
+#include <gitpp/ObjectId.hpp>
+#include <gitpp/Repository.hpp>
+#include <gitpp/RevisionWalker.hpp>
 
 #include "GraphRow.hpp"
 
@@ -13,8 +16,8 @@ struct git_repository;
 struct git_revwalk;
 
 struct Edge {
-  git_oid Source;
-  git_oid Destination;
+  gitpp::ObjectId Source;
+  gitpp::ObjectId Destination;
 };
 
 class GitLogModel : public QAbstractTableModel {
@@ -30,24 +33,24 @@ public:
   QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
-  git_repository* repository() const {
+  const std::optional<gitpp::Repository>& repository() const {
     return Repository;
   }
 
 private:
-  void reset(git_repository* repository, git_revwalk* revisionWalker);
+  void reset(gitpp::Repository repository, gitpp::RevisionWalker revisionWalker);
 
   void load();
 
-  git_repository* Repository = nullptr;
-  git_revwalk* RevisionWalker = nullptr;
+  std::optional<gitpp::Repository> Repository;
+  std::optional<gitpp::RevisionWalker> RevisionWalker;
 
-  std::vector<git_oid> Commits;
+  std::vector<gitpp::ObjectId> Commits;
   std::vector<GraphRow> Graph;
 
   std::vector<Edge> PreviousEdges;
 };
 
-Q_DECLARE_METATYPE(const git_oid*);
+Q_DECLARE_METATYPE(const gitpp::ObjectId*);
 
 #endif // GITLOGMODEL_HPP

@@ -2,9 +2,7 @@
 
 #include <array>
 
-#include <git2/commit.h>
-#include <git2/repository.h>
-#include <git2/revwalk.h>
+#include <gitpp/Commit.hpp>
 
 namespace {
 
@@ -18,16 +16,30 @@ struct oid_equal {
 };
 
 template <typename Container, typename Compare>
-constexpr bool contains(const Container& container, const Compare& compare) noexcept {
+constexpr auto find(const Container& container, const Compare& compare) noexcept
+    -> std::enable_if_t<std::is_invocable_r<bool, const Compare&, decltype(*begin(container))>::value,
+                        decltype(begin(container))> {
   const auto endIt = end(container);
-  return std::find_if(begin(container), endIt, compare) != endIt;
+  return std::find_if(begin(container), endIt, compare);
+}
+
+template <typename Container, typename Value>
+constexpr auto find(const Container& container, const Value& value) noexcept
+    -> decltype(*begin(container) == value, begin(container)) {
+  const auto endIt = end(container);
+  return std::find(begin(container), endIt, value);
+}
+
+template <typename Container, typename Compare>
+constexpr bool contains(const Container& container, const Compare& compare) noexcept {
+  return ::find(container, compare) != end(container);
 }
 
 template <typename Container, typename Compare>
 constexpr int indexOf(const Container& container, const Compare& compare) noexcept {
   const auto beginIt = begin(container);
   const auto endIt = end(container);
-  auto search = std::find_if(beginIt, endIt, compare);
+  auto search = ::find(container, compare);
   if (search != endIt) {
     return std::distance(beginIt, search);
   } else {
@@ -35,11 +47,11 @@ constexpr int indexOf(const Container& container, const Compare& compare) noexce
   }
 }
 
-std::vector<git_oid> computeDestinationMapping(const git_oid& commitId, const std::vector<Edge>& edges);
-std::vector<Edge> computeEdges(git_commit* commit, std::vector<Edge> previousEdges);
+std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& commitId, const std::vector<Edge>& edges);
+std::vector<Edge> computeEdges(const gitpp::Commit& commit, std::vector<Edge> previousEdges);
 std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges);
-std::vector<Edge> computeEdges(git_commit* commit);
-std::vector<Edge> insertNewEdges(git_commit* commit, std::vector<Edge> edges, std::vector<Edge> newEdges);
+std::vector<Edge> computeEdges(const gitpp::Commit& commit);
+std::vector<Edge> insertNewEdges(const gitpp::Commit& commit, std::vector<Edge> edges, std::vector<Edge> newEdges);
 
 } // namespace
 
@@ -47,32 +59,18 @@ GitLogModel::GitLogModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
 GitLogModel::~GitLogModel() {
-  if (RevisionWalker != nullptr) {
-    git_revwalk_free(RevisionWalker);
-  }
-  if (Repository != nullptr) {
-    git_repository_free(Repository);
-  }
 }
 
 bool GitLogModel::loadRepository(const QString& path) {
   auto local = path.toLocal8Bit();
-  git_repository* repository;
-  if (git_repository_open(&repository, local.data()) != 0) {
+  RevisionWalker = std::nullopt;
+  auto repo = gitpp::Repository::open({local.data(), static_cast<std::size_t>(local.size())});
+  if (!repo) {
     return false;
   }
-  git_revwalk* revisionWalker;
-  if (git_revwalk_new(&revisionWalker, repository) != 0) {
-    git_repository_free(repository);
-    return false;
-  }
-  if (git_revwalk_push_head(revisionWalker) != 0) {
-    git_revwalk_free(revisionWalker);
-    git_repository_free(repository);
-    return false;
-  }
-  git_revwalk_sorting(revisionWalker, GIT_SORT_TIME | GIT_SORT_TOPOLOGICAL);
-  reset(repository, revisionWalker);
+  gitpp::RevisionWalker walker(*repo, gitpp::RevisionWalker::TopologicalSort | gitpp::RevisionWalker::DateSort);
+  walker.pushHead();
+  reset(std::move(*repo), std::move(walker));
   load();
   return true;
 }
@@ -102,17 +100,11 @@ QVariant GitLogModel::data(const QModelIndex& index, int role) const {
   return {};
 }
 
-void GitLogModel::reset(git_repository* repository, git_revwalk* revisionWalker) {
+void GitLogModel::reset(gitpp::Repository repository, gitpp::RevisionWalker revisionWalker) {
   beginResetModel();
 
-  if (Repository != nullptr) {
-    git_repository_free(Repository);
-  }
-  Repository = repository;
-  if (RevisionWalker != nullptr) {
-    git_revwalk_free(RevisionWalker);
-  }
-  RevisionWalker = revisionWalker;
+  Repository = std::move(repository);
+  RevisionWalker = std::move(revisionWalker);
 
   Commits = {};
   Graph = {};
@@ -122,44 +114,42 @@ void GitLogModel::reset(git_repository* repository, git_revwalk* revisionWalker)
 }
 
 void GitLogModel::load() {
-  git_oid currentId;
-  while (git_revwalk_next(&currentId, RevisionWalker) == 0) {
-    git_commit* currentCommit = nullptr;
-    git_commit_lookup(&currentCommit, Repository, &currentId);
+  RevisionWalker->next();
+  for (auto currentId : *RevisionWalker) {
+    auto currentCommit = gitpp::Commit ::fromId(*Repository, currentId);
+    if (!currentCommit) {
+      break;
+    }
     auto oldMapping = computeDestinationMapping(currentId, PreviousEdges);
-    PreviousEdges = computeEdges(currentCommit, PreviousEdges);
+    PreviousEdges = computeEdges(*currentCommit, PreviousEdges);
     auto newMapping = computeDestinationMapping(currentId, PreviousEdges);
     auto& [commitIndex, paths] = Graph.emplace_back(GraphRow{-1, {}});
-    commitIndex = indexOf(PreviousEdges, [cmp = oid_equal{currentId}](const auto& edge) { return cmp(edge.Source); });
+    commitIndex = indexOf(PreviousEdges, [&currentId](const auto& edge) { return currentId == edge.Source; });
     if (commitIndex == -1) {
       commitIndex = 0;
     }
     for (const auto& [src, dest] : PreviousEdges) {
-      int sourceLane = indexOf(oldMapping, oid_equal{src});
+      int sourceLane = indexOf(oldMapping, src);
       if (sourceLane == -1) {
-        sourceLane = indexOf(oldMapping, oid_equal{dest});
+        sourceLane = indexOf(oldMapping, dest);
       }
       if (sourceLane == -1) {
         std::abort();
       }
-      int destinationLane = indexOf(newMapping, oid_equal{dest});
+      int destinationLane = indexOf(newMapping, dest);
       paths.push_back({sourceLane, destinationLane});
     }
-    git_commit_free(currentCommit);
     Commits.push_back(currentId);
   }
 }
 
 namespace {
 
-bool oid_equal::operator()(const git_oid& rhs) const noexcept {
-  return git_oid_equal(&lhs, &rhs);
-}
-
-std::vector<git_oid> computeDestinationMapping(const git_oid& commitId, const std::vector<Edge>& edges) {
-  std::vector<git_oid> result;
+std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& commitId,
+                                                       const std::vector<Edge>& edges) {
+  std::vector<gitpp::ObjectId> result;
   for (const auto& [_, destination] : edges) {
-    if (!contains(result, oid_equal{destination})) {
+    if (!contains(result, destination)) {
       result.push_back(destination);
     }
   }
@@ -169,17 +159,17 @@ std::vector<git_oid> computeDestinationMapping(const git_oid& commitId, const st
   return result;
 }
 
-std::vector<Edge> computeEdges(git_commit* commit, std::vector<Edge> previousEdges) {
+std::vector<Edge> computeEdges(const gitpp::Commit& commit, std::vector<Edge> previousEdges) {
   auto edges = connectPreviousEdges(std::move(previousEdges));
   auto newEdges = computeEdges(commit);
   return insertNewEdges(commit, std::move(edges), std::move(newEdges));
 }
 
 std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges) {
-  std::vector<git_oid> destinations;
+  std::vector<gitpp::ObjectId> destinations;
   std::vector<Edge> result;
   for (auto&& edge : previousEdges) {
-    if (!contains(destinations, oid_equal{edge.Destination})) {
+    if (!contains(destinations, edge.Destination)) {
       destinations.push_back(edge.Destination);
       result.emplace_back(std::move(edge));
     }
@@ -187,28 +177,22 @@ std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges) {
   return result;
 }
 
-std::vector<Edge> computeEdges(git_commit* commit) {
+std::vector<Edge> computeEdges(const gitpp::Commit& commit) {
   std::vector<Edge> result;
 
-  git_oid commitId = *git_commit_id(commit);
-  const int parentCount = git_commit_parentcount(commit);
-  for (int i = 0; i < parentCount; ++i) {
-    git_commit* parent;
-    git_commit_parent(&parent, commit, i);
-    result.emplace_back(Edge{commitId, *git_commit_id(parent)});
-    git_commit_free(parent);
+  const auto commitId = commit.id();
+  for (auto parentId : commit.parentIds()) {
+    result.push_back(Edge{commit.id(), parentId});
   }
 
   return result;
 }
 
-std::vector<Edge> insertNewEdges(git_commit* commit, std::vector<Edge> edges, std::vector<Edge> newEdges) {
+std::vector<Edge> insertNewEdges(const gitpp::Commit& commit, std::vector<Edge> edges, std::vector<Edge> newEdges) {
   std::vector<Edge> result = std::move(edges);
 
-  auto current =
-      std::find_if(begin(result), end(result), [cmp = oid_equal{*git_commit_id(commit)}](const auto& edge) noexcept {
-        return cmp(edge.Destination);
-      });
+  auto current = std::find_if(
+      begin(result), end(result), [id = commit.id()](const auto& edge) noexcept { return id == edge.Destination; });
   if (current != end(result)) {
     current = result.erase(current);
   }

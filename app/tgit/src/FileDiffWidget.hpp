@@ -8,7 +8,9 @@
 
 #include <QtWidgets/QSplitter>
 
-#include "DiffView.hpp"
+namespace gitpp {
+struct DeltaDetails;
+}
 
 namespace Ui {
 class FileDiffWidget;
@@ -63,20 +65,14 @@ public:
   explicit FileDiffWidget(QWidget* parent = nullptr);
   ~FileDiffWidget();
 
-  void setDiff(const DiffView* diff);
-  void setFile(const DiffView::File* file);
+  void setFile(const gitpp::DeltaDetails& file, QString leftContents, QString rightContents);
 
 private:
-  void refresh();
-  void highlightLines();
+  void highlightLines(const gitpp::DeltaDetails& file);
 
   std::unique_ptr<Ui::FileDiffWidget> Ui;
 
-  const DiffView* CurrentDiff = nullptr;
-  const DiffView::File* CurrentFile = nullptr;
-
   std::vector<Mapping> LineMapping;
-
   bool ScrollLocked = false;
 };
 

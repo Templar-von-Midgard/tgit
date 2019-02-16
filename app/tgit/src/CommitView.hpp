@@ -6,22 +6,20 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QString>
 
-struct git_repository;
-struct git_oid;
+namespace gitpp {
+class Commit;
+}
 
 class DiffView;
 
 struct CommitView {
-  git_repository* Repository;
-  const git_oid* Oid;
+  const gitpp::Commit& commit;
 
-  QString shortHash() const noexcept;
-  QString shortMessage() const noexcept;
+  QString shortId() const noexcept;
+  QString summary() const noexcept;
   QString message() const noexcept;
   QDateTime creation() const noexcept;
   QString author() const noexcept;
-
-  DiffView diff() const noexcept;
 };
 
 #endif // COMMITVIEW_HPP

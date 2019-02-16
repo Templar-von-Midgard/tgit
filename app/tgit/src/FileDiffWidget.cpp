@@ -7,6 +7,8 @@
 #include <QtGui/QTextCursor>
 #include <QtWidgets/QScrollBar>
 
+#include <gitpp/Diff.hpp>
+
 #include <stx/overload.hpp>
 
 #include "ui_FileDiffWidget.h"
@@ -49,33 +51,16 @@ FileDiffWidget::FileDiffWidget(QWidget* parent) : QSplitter(parent), Ui(new Ui::
 
 FileDiffWidget::~FileDiffWidget() = default;
 
-void FileDiffWidget::setDiff(const DiffView* diff) {
-  CurrentDiff = diff;
-  CurrentFile = nullptr;
-  refresh();
-}
-
-void FileDiffWidget::setFile(const DiffView::File* file) {
-  CurrentFile = file;
+void FileDiffWidget::setFile(const gitpp::DeltaDetails& file, QString leftContents, QString rightContents) {
   LineMapping = {};
-  refresh();
+  Ui->OldFileContents->setPlainText(std::move(leftContents));
+  Ui->NewFileContents->setPlainText(std::move(rightContents));
+  highlightLines(file);
 }
 
-void FileDiffWidget::refresh() {
-  if (CurrentDiff != nullptr && CurrentFile != nullptr) {
-    auto [old, new_] = CurrentDiff->revisions(*CurrentFile);
-    Ui->OldFileContents->setPlainText(std::move(old));
-    Ui->NewFileContents->setPlainText(std::move(new_));
-    highlightLines();
-  } else {
-    Ui->OldFileContents->setPlainText("");
-    Ui->NewFileContents->setPlainText("");
-  }
-}
-
-void FileDiffWidget::highlightLines() {
+void FileDiffWidget::highlightLines(const gitpp::DeltaDetails& file) {
   auto visitor = stx::overload{
-      [this](DiffView::AddedLine line) {
+      [this](gitpp::DeltaDetails::AddedLine line) {
         if (LineMapping.empty()) {
           LineMapping.push_back({Mapping::Addition, {0, 0}, {line.LineNumber, line.LineNumber}});
         } else {
@@ -92,7 +77,7 @@ void FileDiffWidget::highlightLines() {
         newFormat.setBackground(background.darker(150));
         newCursor.setBlockFormat(newFormat);
       },
-      [this](DiffView::DeletedLine line) {
+      [this](gitpp::DeltaDetails::DeletedLine line) {
         if (LineMapping.empty()) {
           LineMapping.push_back({Mapping::Deletion, {line.LineNumber, line.LineNumber}, {0, 0}});
         } else {
@@ -108,22 +93,25 @@ void FileDiffWidget::highlightLines() {
         oldFormat.setBackground(QColor{Qt::darkRed}.darker(150));
         oldCursor.setBlockFormat(oldFormat);
       },
-      [this](DiffView::ContextLine line) {
+      [this](gitpp::DeltaDetails::ContextLine line) {
         if (LineMapping.empty()) {
-          LineMapping.push_back(
-              {Mapping::Context, {line.OldLineNumber, line.OldLineNumber}, {line.NewLineNumber, line.NewLineNumber}});
+          LineMapping.push_back({Mapping::Context,
+                                 {line.LeftLineNumber, line.LeftLineNumber},
+                                 {line.RightLineNumber, line.RightLineNumber}});
           return;
         }
         auto& [kind, left, right] = LineMapping.back();
-        if (kind == Mapping::Context && left.Last + 1 == line.OldLineNumber && right.Last + 1 == line.NewLineNumber) {
-          left.extend(line.OldLineNumber);
-          right.extend(line.NewLineNumber);
+        if (kind == Mapping::Context && left.Last + 1 == line.LeftLineNumber &&
+            right.Last + 1 == line.RightLineNumber) {
+          left.extend(line.LeftLineNumber);
+          right.extend(line.RightLineNumber);
         } else {
-          LineMapping.push_back(
-              {Mapping::Context, {line.OldLineNumber, line.OldLineNumber}, {line.NewLineNumber, line.NewLineNumber}});
+          LineMapping.push_back({Mapping::Context,
+                                 {line.LeftLineNumber, line.LeftLineNumber},
+                                 {line.RightLineNumber, line.RightLineNumber}});
         }
       }};
-  for (const auto& line : CurrentFile->Lines) {
+  for (const auto& line : file.Lines) {
     std::visit(visitor, line);
   }
   if (LineMapping.empty()) {

@@ -32,7 +32,7 @@ CommitDetailsWidget::CommitDetailsWidget(QWidget* parent) : QWidget(parent) {
 }
 
 void CommitDetailsWidget::setCommit(const CommitView& commit) {
-  ShortHash->setText(commit.shortHash());
+  ShortHash->setText(commit.shortId());
   Author->setText(commit.author());
   Creation->setText(commit.creation().toString());
   Message->setPlainText(commit.message());
