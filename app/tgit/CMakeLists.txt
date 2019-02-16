@@ -6,7 +6,6 @@ set(CMAKE_AUTOUIC ON)
 add_executable(tgit WIN32
   src/main.cpp
   src/GraphRow.hpp
-  src/GitUtils.hpp
 )
 add_classes(tgit
   src/TGitMainWindow
@@ -17,12 +16,10 @@ add_classes(tgit
   src/CommitDetailsWidget
   src/CommitDiffModel
   src/FileDiffWidget
-  src/DiffView
   src/CodeViewer
 )
 target_link_libraries(tgit
-  PRIVATE git::libgit2
-          Qt5::Widgets
+  PRIVATE Qt5::Widgets
           stx
           gitpp
 )

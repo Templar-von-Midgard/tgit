@@ -2,8 +2,6 @@
 
 #include <QtGui/QBrush>
 
-#include "DiffView.hpp"
-
 CommitDiffModel::CommitDiffModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 

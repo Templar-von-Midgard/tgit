@@ -20,8 +20,6 @@ struct CommitView {
   QString message() const noexcept;
   QDateTime creation() const noexcept;
   QString author() const noexcept;
-
-  DiffView diff() const noexcept;
 };
 
 #endif // COMMITVIEW_HPP

@@ -2,15 +2,7 @@
 
 #include <utility>
 
-#include <git2/buffer.h>
-#include <git2/commit.h>
-#include <git2/diff.h>
-#include <git2/tree.h>
-
 #include <gitpp/Commit.hpp>
-
-#include "DiffView.hpp"
-#include "GitUtils.hpp"
 
 QString CommitView::shortId() const noexcept {
   return QString::fromStdString(commit.shortId());
@@ -30,8 +22,4 @@ QDateTime CommitView::creation() const noexcept {
 
 QString CommitView::author() const noexcept {
   return QString::fromStdString(commit.author().Name);
-}
-
-DiffView CommitView::diff() const noexcept {
-  return DiffView{nullptr, nullptr};
 }
