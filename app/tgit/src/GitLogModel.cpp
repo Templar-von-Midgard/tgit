@@ -75,11 +75,11 @@ bool GitLogModel::loadRepository(const QString& path) {
   return true;
 }
 
-int GitLogModel::rowCount(const QModelIndex& parent) const {
+int GitLogModel::rowCount(const QModelIndex&) const {
   return static_cast<int>(Commits.size());
 }
 
-int GitLogModel::columnCount(const QModelIndex& parent) const {
+int GitLogModel::columnCount(const QModelIndex&) const {
   return ColumnCount;
 }
 
@@ -182,7 +182,7 @@ std::vector<Edge> computeEdges(const gitpp::Commit& commit) {
 
   const auto commitId = commit.id();
   for (auto parentId : commit.parentIds()) {
-    result.push_back(Edge{commit.id(), parentId});
+    result.push_back(Edge{commitId, parentId});
   }
 
   return result;

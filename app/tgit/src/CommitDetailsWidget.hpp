@@ -5,7 +5,7 @@
 
 #include <QtWidgets/QWidget>
 
-class CommitView;
+struct CommitView;
 
 namespace Ui {
 class CommitDetailsWidget;

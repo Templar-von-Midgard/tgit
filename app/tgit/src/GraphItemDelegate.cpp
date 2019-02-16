@@ -30,6 +30,10 @@ void GraphItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
   painter->setClipping(true);
   painter->setClipRect(option.rect);
 
+  auto pen = painter->pen();
+  pen.setWidthF(EdgeWidth);
+  painter->setPen(pen);
+
   if (o.state & QStyle::State_Selected) {
     painter->fillRect(o.rect, o.palette.highlight());
     o.state &= ~QStyle::State_Selected;

@@ -17,6 +17,6 @@ struct GraphRow {
   PathList Paths;
 };
 
-Q_DECLARE_METATYPE(GraphRow);
+Q_DECLARE_METATYPE(GraphRow)
 
 #endif // GRAPHROW_HPP

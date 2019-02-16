@@ -69,3 +69,8 @@ if(USE_IWYU)
     )
   endif()
 endif()
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR
+  CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  add_compile_options("-W" "-Wall" "-Wextra" "-pedantic" "-Werror")
+endif()

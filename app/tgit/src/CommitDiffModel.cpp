@@ -15,11 +15,11 @@ void CommitDiffModel::setDiff(std::vector<gitpp::Delta> diff) {
   endResetModel();
 }
 
-int CommitDiffModel::rowCount(const QModelIndex& parent) const {
+int CommitDiffModel::rowCount(const QModelIndex&) const {
   return Files.size();
 }
 
-int CommitDiffModel::columnCount(const QModelIndex& parent) const {
+int CommitDiffModel::columnCount(const QModelIndex&) const {
   return 3;
 }
 

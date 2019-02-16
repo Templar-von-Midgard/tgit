@@ -51,6 +51,6 @@ private:
   std::vector<Edge> PreviousEdges;
 };
 
-Q_DECLARE_METATYPE(const gitpp::ObjectId*);
+Q_DECLARE_METATYPE(const gitpp::ObjectId*)
 
 #endif // GITLOGMODEL_HPP

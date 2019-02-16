@@ -15,7 +15,7 @@ static_assert(std::is_move_constructible_v<gitpp::Diff>, "");
 namespace {
 
 template <typename DeltaT>
-int fileCallback(const git_diff_delta* delta, float progress, void* capture) noexcept {
+int fileCallback(const git_diff_delta* delta, float /*progress*/, void* capture) noexcept {
   auto files = reinterpret_cast<std::vector<DeltaT>*>(capture);
   auto& file = files->emplace_back();
   switch (delta->status) {
@@ -56,7 +56,7 @@ int fileCallback(const git_diff_delta* delta, float progress, void* capture) noe
   return 0;
 }
 
-int lineCallback(const git_diff_delta* delta, const git_diff_hunk* hunk, const git_diff_line* diffLine,
+int lineCallback(const git_diff_delta* delta, const git_diff_hunk*, const git_diff_line* diffLine,
                  void* capture) noexcept {
   using namespace gitpp;
   auto files = reinterpret_cast<std::vector<DeltaDetails>*>(capture);
@@ -91,11 +91,20 @@ static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::Delta>), git_di
 static_assert(std::is_convertible_v<decltype(fileCallback<gitpp::DeltaDetails>), git_diff_file_cb>, "");
 static_assert(std::is_convertible_v<decltype(lineCallback), git_diff_line_cb>, "");
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
 void applyFindOptions(git_diff* diff) {
   git_diff_find_options findOptions = GIT_DIFF_FIND_OPTIONS_INIT;
   findOptions.flags = GIT_DIFF_FIND_RENAMES | GIT_DIFF_FIND_COPIES | GIT_DIFF_FIND_FOR_UNTRACKED;
   git_diff_find_similar(diff, &findOptions);
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 } // namespace
 
@@ -115,6 +124,11 @@ namespace gitpp {
 
 Diff::~Diff() = default;
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wmissing-field-initializers"
+#endif
+
 Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> paths) noexcept {
   assert(lhs != nullptr || rhs != nullptr);
 
@@ -133,6 +147,10 @@ Diff Diff::create(const Tree* lhs, const Tree* rhs, std::vector<std::string> pat
   applyFindOptions(handle);
   return Diff{handle};
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 Diff Diff::create(const Commit& commit, std::vector<std::string> paths) noexcept {
   auto rightTree = Tree::fromCommit(commit);

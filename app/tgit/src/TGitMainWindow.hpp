@@ -29,7 +29,7 @@ signals:
 
 private slots:
   void openAction_triggered();
-  void LogView_currentRowChanged(int row);
+  void LogView_currentRowChanged();
   void DiffOverview_currentRowChanged(int row);
 
 private:

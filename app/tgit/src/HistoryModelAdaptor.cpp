@@ -28,7 +28,7 @@ QString columnName(int column) noexcept {
 HistoryModelAdaptor::HistoryModelAdaptor(QObject* parent) : QIdentityProxyModel(parent) {
 }
 
-int HistoryModelAdaptor::columnCount(const QModelIndex& parent) const {
+int HistoryModelAdaptor::columnCount(const QModelIndex&) const {
   return ColumnCount;
 }
 

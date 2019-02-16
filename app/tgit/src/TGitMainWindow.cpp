@@ -40,7 +40,7 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
   Ui->DiffOverview->setModel(DiffModel);
 
   connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
-          [this](const QModelIndex& current, const auto&) { LogView_currentRowChanged(current.row()); });
+          [this](const QModelIndex&, const auto&) { LogView_currentRowChanged(); });
   connect(Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
           [this](const QModelIndex& current, const auto&) { DiffOverview_currentRowChanged(current.row()); });
 }
@@ -66,7 +66,7 @@ void TGitMainWindow::openAction_triggered() {
   loadRepository(repositoryPath);
 }
 
-void TGitMainWindow::LogView_currentRowChanged(int row) {
+void TGitMainWindow::LogView_currentRowChanged() {
   auto commit = currentCommit();
   CommitView view{commit};
   Ui->CommitDetails->setCommit(view);

@@ -13,7 +13,7 @@ namespace gitpp {
 class Commit;
 class Repository;
 
-class RevisionWalkIterator;
+struct RevisionWalkIterator;
 
 class RevisionWalker {
 public:
