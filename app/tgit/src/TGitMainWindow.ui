@@ -17,27 +17,14 @@
    <property name="orientation">
     <enum>Qt::Vertical</enum>
    </property>
-  <widget class="QSplitter" name="CentralSplitter">
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <widget class="QTableView" name="LogView">
-    <property name="selectionBehavior">
-     <enum>QAbstractItemView::SelectRows</enum>
-    </property>
-    <property name="verticalScrollMode">
-     <enum>QAbstractItemView::ScrollPerPixel</enum>
-    </property>
-    <property name="horizontalScrollMode">
-     <enum>QAbstractItemView::ScrollPerPixel</enum>
-    </property>
-   </widget>
-   <widget class="QSplitter" name="DetailsSplitter">
+   <widget class="QSplitter" name="CentralSplitter">
     <property name="orientation">
-     <enum>Qt::Vertical</enum>
+     <enum>Qt::Horizontal</enum>
     </property>
-    <widget class="CommitDetailsWidget" name="CommitDetails" native="true"/>
-    <widget class="QTableView" name="DiffOverview">
+    <widget class="QTableView" name="LogView">
+     <property name="tabKeyNavigation">
+      <bool>false</bool>
+     </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>
@@ -47,14 +34,37 @@
      <property name="horizontalScrollMode">
       <enum>QAbstractItemView::ScrollPerPixel</enum>
      </property>
-     <property name="sortingEnabled">
-      <bool>true</bool>
+    </widget>
+    <widget class="QSplitter" name="DetailsSplitter">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
      </property>
+     <widget class="CommitDetailsWidget" name="CommitDetails" native="true"/>
+     <widget class="QTableView" name="DiffOverview">
+      <property name="tabKeyNavigation">
+       <bool>false</bool>
+      </property>
+      <property name="selectionBehavior">
+       <enum>QAbstractItemView::SelectRows</enum>
+      </property>
+      <property name="verticalScrollMode">
+       <enum>QAbstractItemView::ScrollPerPixel</enum>
+      </property>
+      <property name="horizontalScrollMode">
+       <enum>QAbstractItemView::ScrollPerPixel</enum>
+      </property>
+      <property name="sortingEnabled">
+       <bool>true</bool>
+      </property>
+     </widget>
     </widget>
    </widget>
+   <widget class="FileDiffWidget" name="FileDiff">
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
   </widget>
-  <widget class="FileDiffWidget" name="FileDiff" />
- </widget>
   <widget class="QMenuBar" name="MenuBar">
    <property name="geometry">
     <rect>
@@ -88,6 +98,7 @@
    <class>FileDiffWidget</class>
    <extends>QSplitter</extends>
    <header>FileDiffWidget.hpp</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

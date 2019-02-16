@@ -12,13 +12,13 @@ add_classes(tgit PRIVATE
   HistoryModelAdaptor
   GraphItemDelegate
   CommitView
-  CommitDetailsWidget
   CommitDiffModel
   CodeViewer
 )
 add_widgets(tgit PRIVATE
   TGitMainWindow
   FileDiffWidget
+  CommitDetailsWidget
 )
 target_link_libraries(tgit
   PRIVATE Qt5::Widgets

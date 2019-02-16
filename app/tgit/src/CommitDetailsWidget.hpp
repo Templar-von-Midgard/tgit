@@ -1,14 +1,15 @@
 #ifndef COMMITDETAILSWIDGET_HPP
 #define COMMITDETAILSWIDGET_HPP
 
+#include <memory>
+
 #include <QtWidgets/QWidget>
 
-class QLabel;
-class QPlainTextEdit;
-class QTableView;
-
-class CommitDiffModel;
 class CommitView;
+
+namespace Ui {
+class CommitDetailsWidget;
+}
 
 class CommitDetailsWidget : public QWidget {
 public:
@@ -17,10 +18,7 @@ public:
   void setCommit(const CommitView& commit);
 
 private:
-  QLabel* ShortHash;
-  QLabel* Author;
-  QLabel* Creation;
-  QPlainTextEdit* Message;
+  std::unique_ptr<Ui::CommitDetailsWidget> Ui;
 };
 
 #endif // COMMITDETAILSWIDGET_HPP
