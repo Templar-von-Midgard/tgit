@@ -7,25 +7,19 @@
 #include <stx/algorithm/contains.hpp>
 #include <stx/algorithm/index_of.hpp>
 
+#include "GraphBuilder.hpp"
+
 namespace {
 
 constexpr int ColumnCount = 1;
-
 constexpr std::array<const char*, ColumnCount> ColumnNames = {"Id"};
-
-std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& commitId, const std::vector<Edge>& edges);
-std::vector<Edge> computeEdges(const gitpp::Commit& commit, std::vector<Edge> previousEdges);
-std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges);
-std::vector<Edge> computeEdges(const gitpp::Commit& commit);
-std::vector<Edge> insertNewEdges(const gitpp::Commit& commit, std::vector<Edge> edges, std::vector<Edge> newEdges);
 
 } // namespace
 
 GitLogModel::GitLogModel(QObject* parent) : QAbstractTableModel(parent) {
 }
 
-GitLogModel::~GitLogModel() {
-}
+GitLogModel::~GitLogModel() = default;
 
 bool GitLogModel::loadRepository(const QString& path) {
   auto local = path.toLocal8Bit();
@@ -74,96 +68,11 @@ void GitLogModel::reset(gitpp::Repository repository, gitpp::RevisionWalker revi
 
   Commits = {};
   Graph = {};
-  PreviousEdges = {};
 
   endResetModel();
 }
 
 void GitLogModel::load() {
-  for (auto currentId : *RevisionWalker) {
-    auto currentCommit = gitpp::Commit ::fromId(*Repository, currentId);
-    if (!currentCommit) {
-      break;
-    }
-    auto oldMapping = computeDestinationMapping(currentId, PreviousEdges);
-    PreviousEdges = computeEdges(*currentCommit, PreviousEdges);
-    auto newMapping = computeDestinationMapping(currentId, PreviousEdges);
-    auto& [commitIndex, paths] = Graph.emplace_back(GraphRow{-1, {}});
-    commitIndex = stx::index_of(PreviousEdges, [&currentId](const auto& edge) { return currentId == edge.Source; });
-    if (commitIndex == -1) {
-      commitIndex = 0;
-    }
-    for (const auto& [src, dest] : PreviousEdges) {
-      int sourceLane = stx::index_of(oldMapping, src);
-      if (sourceLane == -1) {
-        sourceLane = stx::index_of(oldMapping, dest);
-      }
-      if (sourceLane == -1) {
-        std::abort();
-      }
-      int destinationLane = stx::index_of(newMapping, dest);
-      paths.push_back({sourceLane, destinationLane});
-    }
-    Commits.push_back(currentId);
-  }
+  GraphBuilder builder{*Repository, std::move(*RevisionWalker), {}};
+  loadGraph(Commits, Graph, std::move(builder));
 }
-
-namespace {
-
-std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& commitId,
-                                                       const std::vector<Edge>& edges) {
-  std::vector<gitpp::ObjectId> result;
-  for (const auto& [_, destination] : edges) {
-    if (!stx::contains(result, destination)) {
-      result.push_back(destination);
-    }
-  }
-  if (result.empty()) {
-    result.push_back(commitId);
-  }
-  return result;
-}
-
-std::vector<Edge> computeEdges(const gitpp::Commit& commit, std::vector<Edge> previousEdges) {
-  auto edges = connectPreviousEdges(std::move(previousEdges));
-  auto newEdges = computeEdges(commit);
-  return insertNewEdges(commit, std::move(edges), std::move(newEdges));
-}
-
-std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges) {
-  std::vector<gitpp::ObjectId> destinations;
-  std::vector<Edge> result;
-  for (auto&& edge : previousEdges) {
-    if (!stx::contains(destinations, edge.Destination)) {
-      destinations.push_back(edge.Destination);
-      result.emplace_back(std::move(edge));
-    }
-  }
-  return result;
-}
-
-std::vector<Edge> computeEdges(const gitpp::Commit& commit) {
-  std::vector<Edge> result;
-
-  const auto commitId = commit.id();
-  for (auto parentId : commit.parentIds()) {
-    result.push_back(Edge{commitId, parentId});
-  }
-
-  return result;
-}
-
-std::vector<Edge> insertNewEdges(const gitpp::Commit& commit, std::vector<Edge> edges, std::vector<Edge> newEdges) {
-  std::vector<Edge> result = std::move(edges);
-
-  auto current = std::find_if(
-      begin(result), end(result), [id = commit.id()](const auto& edge) noexcept { return id == edge.Destination; });
-  if (current != end(result)) {
-    current = result.erase(current);
-  }
-  result.insert(current, std::make_move_iterator(begin(newEdges)), std::make_move_iterator(end(newEdges)));
-
-  return result;
-}
-
-} // namespace

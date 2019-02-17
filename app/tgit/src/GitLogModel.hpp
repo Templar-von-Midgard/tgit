@@ -12,14 +12,6 @@
 
 #include "GraphRow.hpp"
 
-struct git_repository;
-struct git_revwalk;
-
-struct Edge {
-  gitpp::ObjectId Source;
-  gitpp::ObjectId Destination;
-};
-
 class GitLogModel : public QAbstractTableModel {
   Q_OBJECT
 public:
@@ -47,8 +39,6 @@ private:
 
   std::vector<gitpp::ObjectId> Commits;
   std::vector<GraphRow> Graph;
-
-  std::vector<Edge> PreviousEdges;
 };
 
 Q_DECLARE_METATYPE(const gitpp::ObjectId*)
