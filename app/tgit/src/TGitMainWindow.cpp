@@ -61,6 +61,9 @@ void TGitMainWindow::loadRepository(const QString& path) {
           [this] { LogView_currentRowChanged(); });
 
   Ui->LogView->selectRow(0);
+  Ui->LogView->resizeColumnToContents(1);
+  Ui->LogView->resizeColumnToContents(2);
+  Ui->LogView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
 void TGitMainWindow::openAction_triggered() {
