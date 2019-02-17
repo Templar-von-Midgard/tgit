@@ -114,7 +114,6 @@ void GitLogModel::reset(gitpp::Repository repository, gitpp::RevisionWalker revi
 }
 
 void GitLogModel::load() {
-  RevisionWalker->next();
   for (auto currentId : *RevisionWalker) {
     auto currentCommit = gitpp::Commit ::fromId(*Repository, currentId);
     if (!currentCommit) {
