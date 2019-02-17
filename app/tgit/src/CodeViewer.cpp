@@ -3,6 +3,7 @@
 #include <QtGui/QFontDatabase>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
+#include <QtGui/QSyntaxHighlighter>
 #include <QtGui/QTextBlock>
 
 namespace {
@@ -33,12 +34,25 @@ struct LineNumberAreaWidget : QWidget {
   }
 };
 
+struct WhitespaceHighlighter : QSyntaxHighlighter {
+  WhitespaceHighlighter(const QColor& color, QTextDocument* parent) : QSyntaxHighlighter(parent), Color(color) {
+  }
+
+protected:
+  void highlightBlock(const QString& text) override;
+
+private:
+  QColor Color;
+};
+
 CodeViewer::CodeViewer(QWidget* parent) : QPlainTextEdit(parent) {
   setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
   auto option = document()->defaultTextOption();
   option.setFlags(option.flags() | QTextOption::ShowTabsAndSpaces);
   document()->setDefaultTextOption(option);
   LineNumberArea = new LineNumberAreaWidget(this);
+  new WhitespaceHighlighter(palette().placeholderText().color(), document());
+  setTabStopWidth(fontMetrics().horizontalAdvance(' ') * 4);
 
   const auto updateLineNumberAreaViewport = [this] {
     setViewportMargins(lineNumberWidth(fontMetrics(), document()->lineCount()), 0, 0, 0);
@@ -83,5 +97,19 @@ void CodeViewer::paintLineNumbers(QPainter* painter, QRect rect) {
     block = block.next();
     top += height;
     height = blockBoundingRect(block).height();
+  }
+}
+
+void WhitespaceHighlighter::highlightBlock(const QString& text) {
+  for (int i = 0, textSize = text.size(); i < textSize; ++i) {
+    int start = i;
+    int whitespaceCount = 0;
+    while (i < textSize && text[i].isSpace()) {
+      ++whitespaceCount;
+      ++i;
+    }
+    if (whitespaceCount != 0) {
+      setFormat(start, whitespaceCount, Color);
+    }
   }
 }
