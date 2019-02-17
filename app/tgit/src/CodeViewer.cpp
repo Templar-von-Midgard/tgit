@@ -1,5 +1,6 @@
 #include "CodeViewer.hpp"
 
+#include <QtGui/QFontDatabase>
 #include <QtGui/QFontMetrics>
 #include <QtGui/QPainter>
 #include <QtGui/QTextBlock>
@@ -15,8 +16,10 @@ constexpr int digitCount(int lineCount) noexcept {
   return digits;
 }
 
+constexpr int leftPadding = 3;
+
 int lineNumberWidth(const QFontMetrics& fm, int lineCount) noexcept {
-  return digitCount(lineCount) * fm.horizontalAdvance('0');
+  return leftPadding + digitCount(lineCount) * fm.horizontalAdvance('0');
 }
 
 } // namespace
@@ -31,6 +34,10 @@ struct LineNumberAreaWidget : QWidget {
 };
 
 CodeViewer::CodeViewer(QWidget* parent) : QPlainTextEdit(parent) {
+  setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
+  auto option = document()->defaultTextOption();
+  option.setFlags(option.flags() | QTextOption::ShowTabsAndSpaces);
+  document()->setDefaultTextOption(option);
   LineNumberArea = new LineNumberAreaWidget(this);
 
   const auto updateLineNumberAreaViewport = [this] {
