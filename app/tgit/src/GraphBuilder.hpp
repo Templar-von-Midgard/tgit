@@ -18,7 +18,7 @@ struct Edge {
 };
 
 struct GraphBuilder {
-  gitpp::Repository& Repository;
+  const gitpp::Repository& Repository;
   gitpp::RevisionWalker Walker;
 
   std::vector<Edge> Edges;

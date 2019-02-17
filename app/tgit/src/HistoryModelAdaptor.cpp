@@ -5,7 +5,7 @@
 #include <gitpp/Commit.hpp>
 
 #include "CommitView.hpp"
-#include "GitLogModel.hpp"
+#include "History.hpp"
 
 namespace {
 
@@ -25,7 +25,12 @@ QString columnName(int column) noexcept {
 
 } // namespace
 
-HistoryModelAdaptor::HistoryModelAdaptor(QObject* parent) : QIdentityProxyModel(parent) {
+HistoryModelAdaptor::HistoryModelAdaptor(const History& history, QObject* parent)
+    : QAbstractTableModel(parent), Model(history) {
+}
+
+int HistoryModelAdaptor::rowCount(const QModelIndex&) const {
+  return Model.size();
 }
 
 int HistoryModelAdaptor::columnCount(const QModelIndex&) const {
@@ -36,20 +41,18 @@ QVariant HistoryModelAdaptor::headerData(int section, Qt::Orientation orientatio
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
     return columnName(section);
   }
-  return QIdentityProxyModel::headerData(section, orientation, role);
+  return QAbstractTableModel::headerData(section, orientation, role);
 }
 
 QVariant HistoryModelAdaptor::data(const QModelIndex& index, int role) const {
-  auto logModel = static_cast<GitLogModel*>(sourceModel());
-  auto sourceIndex = logModel->index(index.row(), 0);
   if (role == Qt::DecorationRole) {
-    return sourceIndex.data(Qt::DecorationRole);
+    return QVariant::fromValue(Model.graph(index.row()));
   }
   if (role != Qt::DisplayRole) {
     return {};
   }
-  auto commit = gitpp::Commit::fromId(*logModel->repository(), *sourceIndex.data().value<const gitpp::ObjectId*>());
-  CommitView view{*commit};
+  auto commit = Model.commit(index.row());
+  CommitView view{commit};
   switch (index.column()) {
   case 0:
     return view.summary();
@@ -59,14 +62,4 @@ QVariant HistoryModelAdaptor::data(const QModelIndex& index, int role) const {
     return view.author();
   }
   return {};
-}
-
-QModelIndex HistoryModelAdaptor::index(int row, int column, const QModelIndex& parent) const {
-  if (row >= rowCount(parent)) {
-    return QIdentityProxyModel::index(row, column, parent);
-  }
-  if (column >= sourceModel()->columnCount(mapToSource(parent)) && column < columnCount(parent)) {
-    return createIndex(row, column);
-  }
-  return QIdentityProxyModel::index(row, column, parent);
 }

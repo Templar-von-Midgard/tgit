@@ -12,18 +12,17 @@
 #include <gitpp/Commit.hpp>
 #include <gitpp/Delta.hpp>
 #include <gitpp/Diff.hpp>
-#include <gitpp/Tree.hpp>
+#include <gitpp/Repository.hpp>
 
 #include "CommitDetailsWidget.hpp"
 #include "CommitDiffModel.hpp"
 #include "CommitView.hpp"
-#include "GitLogModel.hpp"
 #include "GraphItemDelegate.hpp"
+#include "History.hpp"
 #include "HistoryModelAdaptor.hpp"
 #include "ui_TGitMainWindow.h"
 
-TGitMainWindow::TGitMainWindow(QWidget* parent)
-    : QMainWindow(parent), Model(new GitLogModel(this)), Ui(std::make_unique<Ui::TGitMainWindow>()) {
+TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::make_unique<Ui::TGitMainWindow>()) {
   Ui->setupUi(this);
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
@@ -32,17 +31,11 @@ TGitMainWindow::TGitMainWindow(QWidget* parent)
   Ui->LogView->setItemDelegate(new QItemDelegate(Ui->LogView));
   Ui->LogView->setItemDelegateForColumn(0, new GraphItemDelegate(Ui->LogView));
 
-  auto modelAdaptor = new HistoryModelAdaptor(this);
-  modelAdaptor->setSourceModel(Model);
-  Ui->LogView->setModel(modelAdaptor);
-
   DiffModel = new CommitDiffModel(this);
   Ui->DiffOverview->setModel(DiffModel);
 
-  connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
-          [this](const QModelIndex&, const auto&) { LogView_currentRowChanged(); });
   connect(Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
-          [this](const QModelIndex& current, const auto&) { DiffOverview_currentRowChanged(current.row()); });
+          [this](const QModelIndex& current, const auto&) { DiffOverview_currentRowChanged(current); });
 }
 
 TGitMainWindow::~TGitMainWindow() = default;
@@ -54,10 +47,19 @@ void TGitMainWindow::loadRepository(const QString& path) {
     emit repositoryLoadFailed();
     return;
   }
-  if (!Model->loadRepository(path)) {
+  if (auto repo = gitpp::Repository::open(path.toStdString()); repo) {
+    Repository = std::make_unique<gitpp::Repository>(std::move(*repo));
+  } else {
     emit repositoryLoadFailed();
     return;
   }
+  CurrentHistory = std::make_unique<History>(*Repository);
+
+  delete Ui->LogView->model();
+  Ui->LogView->setModel(new HistoryModelAdaptor(*CurrentHistory, Ui->LogView));
+  connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
+          [this] { LogView_currentRowChanged(); });
+
   Ui->LogView->selectRow(0);
 }
 
@@ -77,18 +79,17 @@ void TGitMainWindow::LogView_currentRowChanged() {
   Ui->DiffOverview->selectRow(0);
 }
 
-void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
+void TGitMainWindow::DiffOverview_currentRowChanged(const QModelIndex& index) {
   auto commit = currentCommit();
-  auto currentIdx = DiffModel->index(row, 0);
-  auto leftFilename = currentIdx.data(CommitDiffModel::LeftFilenameRole).toString();
-  auto rightFilename = currentIdx.data(CommitDiffModel::RightFilenameRole).toString();
+  auto leftFilename = index.data(CommitDiffModel::LeftFilenameRole).toString();
+  auto rightFilename = index.data(CommitDiffModel::RightFilenameRole).toString();
   auto diff = gitpp::Diff::create(commit, {leftFilename.toStdString(), rightFilename.toStdString()});
   auto details = diff.details();
   if (!details.empty()) {
     auto& file = details.front();
 
     QString leftContents = "";
-    if (auto leftBlob = gitpp::Blob::fromId(*Model->repository(), file.LeftId); leftBlob) {
+    if (auto leftBlob = gitpp::Blob::fromId(*Repository, file.LeftId); leftBlob) {
       if (!leftBlob->binary()) {
         auto leftData = leftBlob->content();
         leftContents = QString::fromUtf8(reinterpret_cast<char*>(leftData.data()), leftData.size());
@@ -97,7 +98,7 @@ void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
       }
     }
     QString rightContents = "";
-    if (auto rightBlob = gitpp::Blob::fromId(*Model->repository(), file.RightId); rightBlob) {
+    if (auto rightBlob = gitpp::Blob::fromId(*Repository, file.RightId); rightBlob) {
       if (!rightBlob->binary()) {
         auto rightData = rightBlob->content();
         rightContents = QString::fromUtf8(reinterpret_cast<char*>(rightData.data()), rightData.size());
@@ -111,7 +112,5 @@ void TGitMainWindow::DiffOverview_currentRowChanged(int row) {
 
 gitpp::Commit TGitMainWindow::currentCommit() {
   int row = Ui->LogView->selectionModel()->currentIndex().row();
-  auto commit =
-      gitpp::Commit::fromId(*Model->repository(), *Model->index(row, 0).data().value<const gitpp::ObjectId*>());
-  return std::move(*commit);
+  return CurrentHistory->commit(row);
 }

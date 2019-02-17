@@ -23,7 +23,7 @@ public:
   ~RevisionWalker();
   RevisionWalker& operator=(RevisionWalker&&) noexcept = default;
 
-  explicit RevisionWalker(Repository& repo, unsigned int) noexcept;
+  explicit RevisionWalker(const Repository& repo, unsigned int) noexcept;
 
   void pushHead() noexcept;
 

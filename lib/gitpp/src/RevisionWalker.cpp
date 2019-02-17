@@ -23,7 +23,7 @@ namespace gitpp {
 RevisionWalker::~RevisionWalker() {
 }
 
-RevisionWalker::RevisionWalker(Repository& repo, unsigned int sort) noexcept
+RevisionWalker::RevisionWalker(const Repository& repo, unsigned int sort) noexcept
     : RevisionWalker(createRevWalk(repo.handle())) {
   git_revwalk_sorting(Handle.get(), sort);
 }
