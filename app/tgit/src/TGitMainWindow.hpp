@@ -7,10 +7,11 @@
 
 namespace gitpp {
 class Commit;
-}
+class Repository;
+} // namespace gitpp
 
 class CommitDiffModel;
-class GitLogModel;
+class History;
 
 namespace Ui {
 class TGitMainWindow;
@@ -30,12 +31,13 @@ signals:
 private slots:
   void openAction_triggered();
   void LogView_currentRowChanged();
-  void DiffOverview_currentRowChanged(int row);
+  void DiffOverview_currentRowChanged(const QModelIndex& index);
 
 private:
   gitpp::Commit currentCommit();
 
-  GitLogModel* Model;
+  std::unique_ptr<gitpp::Repository> Repository;
+  std::unique_ptr<History> CurrentHistory;
   CommitDiffModel* DiffModel;
 
   std::unique_ptr<Ui::TGitMainWindow> Ui;

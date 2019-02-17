@@ -23,12 +23,11 @@ public:
   ~RevisionWalker();
   RevisionWalker& operator=(RevisionWalker&&) noexcept = default;
 
-  explicit RevisionWalker(Repository& repo, unsigned int) noexcept;
+  explicit RevisionWalker(const Repository& repo, unsigned int) noexcept;
 
   void pushHead() noexcept;
 
-  const ObjectId& current() const noexcept;
-  bool next() noexcept;
+  ObjectId next() noexcept;
 
   RevisionWalkIterator begin() noexcept;
   RevisionWalkIterator end() noexcept;
@@ -40,7 +39,6 @@ private:
     void operator()(git_revwalk*) const noexcept;
   };
   std::unique_ptr<git_revwalk, deleter> Handle;
-  ObjectId Current;
 };
 
 struct RevisionWalkIterator {
@@ -63,6 +61,7 @@ struct RevisionWalkIterator {
   RevisionWalkIterator& operator++() noexcept;
 
 private:
+  ObjectId CommitId;
   RevisionWalker* Walker = nullptr;
 };
 

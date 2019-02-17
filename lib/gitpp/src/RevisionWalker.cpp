@@ -1,5 +1,7 @@
 #include "RevisionWalker.hpp"
 
+#include <cassert>
+
 #include <git2/commit.h>
 #include <git2/revwalk.h>
 
@@ -21,7 +23,7 @@ namespace gitpp {
 RevisionWalker::~RevisionWalker() {
 }
 
-RevisionWalker::RevisionWalker(Repository& repo, unsigned int sort) noexcept
+RevisionWalker::RevisionWalker(const Repository& repo, unsigned int sort) noexcept
     : RevisionWalker(createRevWalk(repo.handle())) {
   git_revwalk_sorting(Handle.get(), sort);
 }
@@ -30,12 +32,12 @@ void RevisionWalker::pushHead() noexcept {
   git_revwalk_push_head(Handle.get());
 }
 
-const ObjectId& RevisionWalker::current() const noexcept {
-  return Current;
-}
-
-bool RevisionWalker::next() noexcept {
-  return git_revwalk_next(Current.handle(), Handle.get()) == 0;
+ObjectId RevisionWalker::next() noexcept {
+  ObjectId commitId;
+  if (git_revwalk_next(commitId.handle(), Handle.get()) == 0) {
+    return commitId;
+  }
+  return {};
 }
 
 RevisionWalkIterator RevisionWalker::begin() noexcept {
@@ -46,14 +48,15 @@ RevisionWalkIterator RevisionWalker::end() noexcept {
   return {};
 }
 
-RevisionWalker::RevisionWalker(git_revwalk* handle) noexcept : Handle(handle), Current{ObjectId::RawType{}} {
+RevisionWalker::RevisionWalker(git_revwalk* handle) noexcept : Handle(handle) {
 }
 
 RevisionWalkIterator::RevisionWalkIterator(RevisionWalker& walker) noexcept : Walker(&walker) {
+  CommitId = Walker->next();
 }
 
 bool RevisionWalkIterator::operator==(const RevisionWalkIterator& other) const {
-  return Walker == other.Walker;
+  return Walker == other.Walker && CommitId == other.CommitId;
 }
 
 bool RevisionWalkIterator::operator!=(const RevisionWalkIterator& other) const {
@@ -61,15 +64,17 @@ bool RevisionWalkIterator::operator!=(const RevisionWalkIterator& other) const {
 }
 
 RevisionWalkIterator::reference RevisionWalkIterator::operator*() noexcept {
-  return Walker->current();
+  return CommitId;
 }
 
 RevisionWalkIterator::pointer RevisionWalkIterator::operator->() noexcept {
-  return &Walker->current();
+  return &CommitId;
 }
 
 RevisionWalkIterator& RevisionWalkIterator::operator++() noexcept {
-  if (!Walker->next()) {
+  assert(Walker != nullptr && "Trying to advance invalid RevisionWalkIterator");
+  CommitId = Walker->next();
+  if (CommitId.empty()) {
     Walker = nullptr;
   }
   return *this;

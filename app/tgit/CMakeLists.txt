@@ -8,12 +8,13 @@ add_executable(tgit WIN32
   src/GraphRow.hpp
 )
 add_classes(tgit PRIVATE
-  GitLogModel
+  History
   HistoryModelAdaptor
   GraphItemDelegate
   CommitView
   CommitDiffModel
   CodeViewer
+  GraphBuilder
 )
 add_widgets(tgit PRIVATE
   TGitMainWindow
