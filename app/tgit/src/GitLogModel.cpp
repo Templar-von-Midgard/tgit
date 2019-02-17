@@ -4,48 +4,14 @@
 
 #include <gitpp/Commit.hpp>
 
+#include <stx/algorithm/contains.hpp>
+#include <stx/algorithm/index_of.hpp>
+
 namespace {
 
 constexpr int ColumnCount = 1;
 
 constexpr std::array<const char*, ColumnCount> ColumnNames = {"Id"};
-
-struct oid_equal {
-  const git_oid& lhs;
-  bool operator()(const git_oid& rhs) const noexcept;
-};
-
-template <typename Container, typename Compare>
-constexpr auto find(const Container& container, const Compare& compare) noexcept
-    -> std::enable_if_t<std::is_invocable_r<bool, const Compare&, decltype(*begin(container))>::value,
-                        decltype(begin(container))> {
-  const auto endIt = end(container);
-  return std::find_if(begin(container), endIt, compare);
-}
-
-template <typename Container, typename Value>
-constexpr auto find(const Container& container, const Value& value) noexcept
-    -> decltype(*begin(container) == value, begin(container)) {
-  const auto endIt = end(container);
-  return std::find(begin(container), endIt, value);
-}
-
-template <typename Container, typename Compare>
-constexpr bool contains(const Container& container, const Compare& compare) noexcept {
-  return ::find(container, compare) != end(container);
-}
-
-template <typename Container, typename Compare>
-constexpr int indexOf(const Container& container, const Compare& compare) noexcept {
-  const auto beginIt = begin(container);
-  const auto endIt = end(container);
-  auto search = ::find(container, compare);
-  if (search != endIt) {
-    return std::distance(beginIt, search);
-  } else {
-    return -1;
-  }
-}
 
 std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& commitId, const std::vector<Edge>& edges);
 std::vector<Edge> computeEdges(const gitpp::Commit& commit, std::vector<Edge> previousEdges);
@@ -123,19 +89,19 @@ void GitLogModel::load() {
     PreviousEdges = computeEdges(*currentCommit, PreviousEdges);
     auto newMapping = computeDestinationMapping(currentId, PreviousEdges);
     auto& [commitIndex, paths] = Graph.emplace_back(GraphRow{-1, {}});
-    commitIndex = indexOf(PreviousEdges, [&currentId](const auto& edge) { return currentId == edge.Source; });
+    commitIndex = stx::index_of(PreviousEdges, [&currentId](const auto& edge) { return currentId == edge.Source; });
     if (commitIndex == -1) {
       commitIndex = 0;
     }
     for (const auto& [src, dest] : PreviousEdges) {
-      int sourceLane = indexOf(oldMapping, src);
+      int sourceLane = stx::index_of(oldMapping, src);
       if (sourceLane == -1) {
-        sourceLane = indexOf(oldMapping, dest);
+        sourceLane = stx::index_of(oldMapping, dest);
       }
       if (sourceLane == -1) {
         std::abort();
       }
-      int destinationLane = indexOf(newMapping, dest);
+      int destinationLane = stx::index_of(newMapping, dest);
       paths.push_back({sourceLane, destinationLane});
     }
     Commits.push_back(currentId);
@@ -148,7 +114,7 @@ std::vector<gitpp::ObjectId> computeDestinationMapping(const gitpp::ObjectId& co
                                                        const std::vector<Edge>& edges) {
   std::vector<gitpp::ObjectId> result;
   for (const auto& [_, destination] : edges) {
-    if (!contains(result, destination)) {
+    if (!stx::contains(result, destination)) {
       result.push_back(destination);
     }
   }
@@ -168,7 +134,7 @@ std::vector<Edge> connectPreviousEdges(std::vector<Edge> previousEdges) {
   std::vector<gitpp::ObjectId> destinations;
   std::vector<Edge> result;
   for (auto&& edge : previousEdges) {
-    if (!contains(destinations, edge.Destination)) {
+    if (!stx::contains(destinations, edge.Destination)) {
       destinations.push_back(edge.Destination);
       result.emplace_back(std::move(edge));
     }
