@@ -78,12 +78,7 @@ GraphRow loadRow(const gitpp::ObjectId& commitId, GraphBuilder& builder) {
   }
 
   GraphRow row;
-  // TODO: examine this (maybe search in previousDestinations instead?)
-  if (std::size_t nodeIndex = stx::index_of(builder.Edges, as_source{commitId}); nodeIndex != stx::not_found) {
-    row.NodeIndex = nodeIndex;
-  } else {
-    row.NodeIndex = 0;
-  }
+  row.NodeIndex = stx::index_of(previousDestinations, commitId);
   for (const auto& [src, dest] : builder.Edges) {
     std::size_t sourceLane = stx::index_of(previousDestinations, src);
     if (sourceLane == stx::not_found) {

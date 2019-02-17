@@ -5,6 +5,8 @@
 #include <QtGui/QPainter>
 #include <QtGui/QPainterPath>
 
+#include <stx/algorithm/contains.hpp>
+
 #include "GraphRow.hpp"
 
 namespace {
@@ -50,14 +52,12 @@ void GraphItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
   if (index.row() > 0) {
     std::vector<int> sources;
     for (auto [source, _] : paths) {
-      const auto begin = sources.begin();
-      const auto end = sources.end();
-      if (std::find(begin, end, source) == end) {
+      if (!stx::contains(sources, source)) {
         sources.push_back(source);
       }
     }
-    if (sources.empty()) {
-      sources.push_back(0);
+    if (!stx::contains(sources, commitIndex)) {
+      sources.push_back(commitIndex);
     }
     for (auto i : sources) {
       qreal x = origin.x() + i * CommitNodeWidth + (i + 1) * BranchSpacing + CommitNodeWidth / 2.0;
