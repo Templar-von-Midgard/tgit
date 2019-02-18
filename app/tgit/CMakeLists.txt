@@ -15,6 +15,7 @@ add_classes(tgit PRIVATE
   CommitDiffModel
   CodeViewer
   GraphBuilder
+  TGitApplication
 )
 add_widgets(tgit PRIVATE
   TGitMainWindow

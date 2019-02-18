@@ -17,16 +17,20 @@ namespace Ui {
 class TGitMainWindow;
 }
 
+class QLabel;
+
 class TGitMainWindow : public QMainWindow {
   Q_OBJECT
 public:
   explicit TGitMainWindow(QWidget* parent = nullptr);
   ~TGitMainWindow();
 
-  void loadRepository(const QString& path);
-
 signals:
-  void repositoryLoadFailed();
+  void repositoryLoadRequested(const QString& path);
+
+public slots:
+  void loadRepository(const QString& path, gitpp::Repository& repository);
+  void onRepositoryLoadFailed(const QString& path);
 
 private slots:
   void openAction_triggered();
@@ -36,11 +40,12 @@ private slots:
 private:
   gitpp::Commit currentCommit();
 
-  std::unique_ptr<gitpp::Repository> Repository;
+  gitpp::Repository* Repository;
   std::unique_ptr<History> CurrentHistory;
   CommitDiffModel* DiffModel;
 
   std::unique_ptr<Ui::TGitMainWindow> Ui;
+  QLabel* StatusLabel;
 };
 
 #endif // TGITMAINWINDOW_HPP

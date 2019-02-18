@@ -1,18 +1,14 @@
 #include "TGitMainWindow.hpp"
 
-#include <QtCore/QDebug>
-#include <QtCore/QDir>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QItemDelegate>
+#include <QtWidgets/QLabel>
 #include <QtWidgets/QMenuBar>
-#include <QtWidgets/QSplitter>
-#include <QtWidgets/QTableView>
 
 #include <gitpp/Blob.hpp>
 #include <gitpp/Commit.hpp>
 #include <gitpp/Delta.hpp>
 #include <gitpp/Diff.hpp>
-#include <gitpp/Repository.hpp>
 
 #include "CommitDetailsWidget.hpp"
 #include "CommitDiffModel.hpp"
@@ -24,6 +20,9 @@
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::make_unique<Ui::TGitMainWindow>()) {
   Ui->setupUi(this);
+  StatusLabel = new QLabel(this);
+  Ui->StatusBar->addWidget(StatusLabel);
+
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
 
@@ -40,19 +39,10 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
 
 TGitMainWindow::~TGitMainWindow() = default;
 
-void TGitMainWindow::loadRepository(const QString& path) {
-  qDebug() << path;
-  QDir directory(path);
-  if (!directory.exists()) {
-    emit repositoryLoadFailed();
-    return;
-  }
-  if (auto repo = gitpp::Repository::open(path.toStdString()); repo) {
-    Repository = std::make_unique<gitpp::Repository>(std::move(*repo));
-  } else {
-    emit repositoryLoadFailed();
-    return;
-  }
+void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repository) {
+  setWindowTitle(QStringLiteral("History [%1]").arg(path));
+
+  Repository = &repository;
   CurrentHistory = std::make_unique<History>(*Repository);
 
   delete Ui->LogView->model();
@@ -66,19 +56,28 @@ void TGitMainWindow::loadRepository(const QString& path) {
   Ui->LogView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
+void TGitMainWindow::onRepositoryLoadFailed(const QString& path) {
+  Ui->StatusBar->showMessage(QStringLiteral("Failed to open %1").arg(path), 30 * 1000);
+}
+
 void TGitMainWindow::openAction_triggered() {
   auto repositoryPath = QFileDialog::getExistingDirectory(this, "Open Repository");
-  loadRepository(repositoryPath);
+  repositoryLoadRequested(repositoryPath);
 }
 
 void TGitMainWindow::LogView_currentRowChanged() {
   auto commit = currentCommit();
   CommitView view{commit};
+
+  Ui->StatusBar->clearMessage();
+  StatusLabel->setText(QStringLiteral("Selected commit: %1").arg(view.shortId()));
+
   Ui->CommitDetails->setCommit(view);
+
   auto diff = gitpp::Diff::create(commit);
   DiffModel->setDiff(diff.files());
-  Ui->DiffOverview->resizeColumnsToContents();
 
+  Ui->DiffOverview->resizeColumnsToContents();
   Ui->DiffOverview->selectRow(0);
 }
 

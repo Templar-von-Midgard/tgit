@@ -16,7 +16,7 @@ public:
 
   Repository& operator=(Repository&&) noexcept = default;
 
-  static std::optional<Repository> open(std::string_view path);
+  [[nodiscard]] static std::optional<Repository> open(std::string_view path);
 
   git_repository* handle() const noexcept;
 

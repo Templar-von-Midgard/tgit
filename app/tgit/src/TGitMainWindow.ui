@@ -82,6 +82,7 @@
    </widget>
    <addaction name="FileMenu"/>
   </widget>
+  <widget class="QStatusBar" name="StatusBar"/>
   <action name="OpenRepositoryAction">
    <property name="text">
     <string>&amp;Open</string>
