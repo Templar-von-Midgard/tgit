@@ -1,5 +1,6 @@
 #include "TGitMainWindow.hpp"
 
+#include <QtGui/QClipboard>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QItemDelegate>
 #include <QtWidgets/QLabel>
@@ -26,6 +27,10 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
 
+  Ui->LogView->addAction(Ui->CopyShortHashAction);
+  Ui->LogView->addAction(Ui->CopyHashAction);
+  Ui->LogView->addAction(Ui->CopySummaryAction);
+  Ui->LogView->addAction(Ui->CopyMessageAction);
   Ui->LogView->setShowGrid(false);
   Ui->LogView->setItemDelegate(new QItemDelegate(Ui->LogView));
   Ui->LogView->setItemDelegateForColumn(0, new GraphItemDelegate(Ui->LogView));
@@ -33,6 +38,34 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
   DiffModel = new CommitDiffModel(this);
   Ui->DiffOverview->setModel(DiffModel);
 
+  connect(Ui->CopyShortHashAction, &QAction::triggered, Ui->LogView, [this] {
+    if (CurrentHistory != nullptr) {
+      auto clipboard = QGuiApplication::clipboard();
+      auto commit = currentCommit();
+      clipboard->setText(QString::fromStdString(commit.shortId()));
+    }
+  });
+  connect(Ui->CopyHashAction, &QAction::triggered, Ui->LogView, [this] {
+    if (CurrentHistory != nullptr) {
+      auto clipboard = QGuiApplication::clipboard();
+      auto commit = currentCommit();
+      clipboard->setText(QString::fromLocal8Bit(commit.id().string().data()));
+    }
+  });
+  connect(Ui->CopySummaryAction, &QAction::triggered, Ui->LogView, [this] {
+    if (CurrentHistory != nullptr) {
+      auto clipboard = QGuiApplication::clipboard();
+      auto commit = currentCommit();
+      clipboard->setText(QString::fromStdString(commit.summary()));
+    }
+  });
+  connect(Ui->CopyMessageAction, &QAction::triggered, Ui->LogView, [this] {
+    if (CurrentHistory != nullptr) {
+      auto clipboard = QGuiApplication::clipboard();
+      auto commit = currentCommit();
+      clipboard->setText(QString::fromStdString(commit.message()));
+    }
+  });
   connect(Ui->DiffOverview->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->FileDiff,
           [this](const QModelIndex& current, const auto&) { DiffOverview_currentRowChanged(current); });
 }
