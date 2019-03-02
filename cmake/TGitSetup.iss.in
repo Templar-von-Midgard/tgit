@@ -1,8 +1,14 @@
 [Setup]
 AppName=@CPACK_PACKAGE_NAME@
 AppVersion=@CPACK_PACKAGE_VERSION@
-DefaultDirName=@CPACK_NATIVE_INSTALL_DIRECTORY@
+AppPublisher=@CPACK_PACKAGE_VENDOR@
+AppSupportUrl=@CPACK_PACKAGE_HOMEPAGE_URL@
+UninstallDisplayName=@CPACK_PACKAGE_DISPLAY_NAME@
+DefaultDirName={pf}\@CPACK_PACKAGE_INSTALL_DIRECTORY@
 OutputBaseFilename=setup-@CPACK_PACKAGE_FILE_NAME@
+SourceDir=@CPACK_TEMPORARY_DIRECTORY@
+ArchitecturesAllowed=x64
+ArchitecturesInstallIn64BitMode=x64
 
 @_components_section@
 

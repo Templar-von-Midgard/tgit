@@ -14,6 +14,7 @@ project(tgit
   HOMEPAGE_URL "https://github.com/Templar-von-Midgard/tgit"
   LANGUAGES CXX
 )
+set(PROJECT_DISPLAY_NAME "TGit")
 
 include(Options)
 include(tgitSupport)
@@ -38,6 +39,8 @@ feature_summary(WHAT ALL
 
 include(InstallRequiredSystemLibraries)
 
+set(CPACK_PACKAGE_DISPLAY_NAME "${PROJECT_DISPLAY_NAME}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "${PROJECT_NAME}")
 if(WIN32)
   set(CPACK_GENERATOR "External")
   set(CPACK_EXTERNAL_REQUESTED_VERSIONS "1.0")

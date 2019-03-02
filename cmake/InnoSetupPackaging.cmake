@@ -79,13 +79,12 @@ endif()
 
 configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/TGitSetup.iss.in"
-  "${CPACK_TEMPORARY_DIRECTORY}/TGitSetup.iss"
+  "${CPACK_TOPLEVEL_DIRECTORY}/TGitSetup.iss"
   @ONLY
 )
 
 execute_process(
   COMMAND "C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe"
-          "/O${CPACK_PACKAGE_DIRECTORY}"
-          "TGitSetup.iss"
-  WORKING_DIRECTORY "${CPACK_TEMPORARY_DIRECTORY}"
+          "/O${CPACK_OUTPUT_FILE_PREFIX}"
+          "${CPACK_TOPLEVEL_DIRECTORY}/TGitSetup.iss"
 )
