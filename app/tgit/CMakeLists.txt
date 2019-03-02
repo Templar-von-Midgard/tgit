@@ -30,3 +30,11 @@ target_link_libraries(tgit
 target_include_directories(tgit
   PRIVATE src
 )
+set_target_properties(tgit PROPERTIES
+  VS_DEBUGGER_ENVIRONMENT "PATH=${DEBUGGER_PATHS};$(PATH)"
+)
+
+install(
+  TARGETS tgit
+  RUNTIME DESTINATION bin
+)

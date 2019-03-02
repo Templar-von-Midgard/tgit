@@ -1,0 +1,12 @@
+get_filename_component(_qt5_bin_dir "@Qt5_QMAKE_LOCATION@" DIRECTORY)
+find_program(windeployqt_EXE
+  NAMES windeployqt
+  HINTS ${_qt5_bin_dir}
+)
+
+if(NOT windeployqt_EXE)
+  message(FATAL_ERROR "Couldn't find `windeployqt.exe`")
+endif()
+
+set(libgit2_dll_release "@libgit2_LOCATION_RELEASE@")
+set(libgit2_dll_debug "@libgit2_LOCATION_DEBUG@")
