@@ -39,3 +39,7 @@ install(
   TARGETS tgit
   RUNTIME DESTINATION bin
 )
+install(
+  FILES $<TARGET_PDB_FILE:tgit>
+  DESTINATION bin
+)

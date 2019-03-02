@@ -4,6 +4,8 @@ AppVersion=@CPACK_PACKAGE_VERSION@
 DefaultDirName=@CPACK_NATIVE_INSTALL_DIRECTORY@
 OutputBaseFilename=setup-@CPACK_PACKAGE_FILE_NAME@
 
+@_components_section@
+
 @_dirs_section@
 
 @_files_section@

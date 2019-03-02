@@ -11,7 +11,7 @@ set(_bin_dir "${CPACK_TEMPORARY_DIRECTORY}/bin")
 set(disabled_features "compiler-runtime" "translations" "system-d3d-compiler")
 list(TRANSFORM disabled_features PREPEND "--no-")
 execute_process(
-  COMMAND "${windeployqt_EXE}" ${disabled_features} "${_bin_dir}"
+  COMMAND "${windeployqt_EXE}" "--pdb" ${disabled_features} "${_bin_dir}"
 )
 if(CPACK_BUILD_CONFIG STREQUAL "Release")
   file(INSTALL "${libgit2_dll_release}"
@@ -45,6 +45,7 @@ foreach(_dir ${_directories})
   string(APPEND _dirs_section "Name: \"{app}\\${_dir}\"\n")
 endforeach()
 
+set(_components)
 set(_files_section "[Files]\n")
 foreach(_file ${_files})
   get_filename_component(_dest_dir "${_file}" DIRECTORY)
@@ -53,9 +54,28 @@ foreach(_file ${_files})
     string(PREPEND _dest_dir "\\")
   endif()
   string(APPEND _files_section
-    "Source: \"${_file}\"; DestDir: \"{app}${_dest_dir}\"\n"
+    "Source: \"${_file}\"; DestDir: \"{app}${_dest_dir}\""
   )
+  get_filename_component(_ext "${_file}" EXT)
+  if(_ext STREQUAL ".pdb")
+    string(APPEND _files_section
+      "; Components: pdb"
+    )
+    if(NOT "pdb" IN_LIST _components)
+      list(APPEND _components "pdb")
+    endif()
+  endif()
+  string(APPEND _files_section "\n")
 endforeach()
+
+if(_components)
+  set(_components_section "[Components]\n")
+  if("pdb" IN_LIST _components)
+    string(APPEND _components_section
+      "Name: \"pdb\"; Description: \"Debugging Information\"; Types: full\n"
+    )
+  endif()
+endif()
 
 configure_file(
   "${CMAKE_CURRENT_LIST_DIR}/TGitSetup.iss.in"
