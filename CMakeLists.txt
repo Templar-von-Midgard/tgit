@@ -8,7 +8,12 @@ list(APPEND CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
 )
 
-project(tgit VERSION 0.0.1 LANGUAGES CXX)
+project(tgit
+  VERSION 0.0.1
+  DESCRIPTION "A GUI client for git"
+  HOMEPAGE_URL "https://github.com/Templar-von-Midgard/tgit"
+  LANGUAGES CXX
+)
 
 include(Options)
 include(tgitSupport)

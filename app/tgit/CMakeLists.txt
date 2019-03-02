@@ -22,6 +22,7 @@ add_widgets(tgit PRIVATE
   FileDiffWidget
   CommitDetailsWidget
 )
+add_resource(tgit)
 target_link_libraries(tgit
   PRIVATE Qt5::Widgets
           stx
