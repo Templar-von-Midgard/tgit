@@ -29,6 +29,13 @@ set(DEBUGGER_PATHS
   "$<TARGET_FILE_DIR:git::libgit2>"
 )
 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  string(APPEND CMAKE_CXX_FLAGS_RELEASE " /Zi")
+  foreach(_type "EXE" "MODULE" "SHARED")
+    string(APPEND "CMAKE_${_type}_LINKER_FLAGS_RELEASE" " /debug")
+  endforeach()
+endif()
+
 add_subdirectory(lib)
 add_subdirectory(app)
 
