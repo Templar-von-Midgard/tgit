@@ -20,12 +20,12 @@ void parseCommandLine(TGitApplication& app) {
 }
 
 int main(int argc, char* argv[]) {
+  gitpp::Context ctx;
   TGitApplication app(argc, argv);
   qSetMessagePattern("%{if-category}%{category}: %{endif}"
                      "%{if-debug}%{function} - %{endif}"
                      "%{message}");
 
-  gitpp::Context ctx;
   parseCommandLine(app);
   return app.exec();
 }

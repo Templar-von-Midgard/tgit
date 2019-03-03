@@ -22,6 +22,7 @@ add_widgets(tgit PRIVATE
   FileDiffWidget
   CommitDetailsWidget
 )
+add_resource(tgit)
 target_link_libraries(tgit
   PRIVATE Qt5::Widgets
           stx
@@ -29,4 +30,16 @@ target_link_libraries(tgit
 )
 target_include_directories(tgit
   PRIVATE src
+)
+set_target_properties(tgit PROPERTIES
+  VS_DEBUGGER_ENVIRONMENT "PATH=${DEBUGGER_PATHS};$(PATH)"
+)
+
+install(
+  TARGETS tgit
+  RUNTIME DESTINATION bin
+)
+install(
+  FILES $<TARGET_PDB_FILE:tgit>
+  DESTINATION bin
 )

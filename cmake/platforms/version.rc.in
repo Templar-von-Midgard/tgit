@@ -1,0 +1,33 @@
+#include <winver.h>
+
+VS_VERSION_INFO VERSIONINFO
+  FILEVERSION @_file_version@
+  PRODUCTVERSION @_product_version@
+  FILEFLAGSMASK (VS_FF_DEBUG | VS_FF_PRERELEASE)
+#ifdef DEBUG
+  FILEFLAGS VS_FF_DEBUG
+#else
+  FILEFLAGS 0
+#endif
+  FILEOS VOS_NT_WINDOWS32
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0" /* LANG_ENGLISH/SUBLANG_ENGLISH_US, Unicode CP */
+    BEGIN
+      VALUE "Comment",          "@_comment@"
+      VALUE "CompanyName",      "@_company_name@"
+      VALUE "FileDescription",  "@_file_description@"
+      VALUE "FileVersion",      "@_file_version_string@"
+      VALUE "InternalName",     "@_internal_name@"
+      VALUE "LegalCopyright",   "@_copyright@"
+      VALUE "OriginalFilename", "@_original_filename@"
+      VALUE "ProductName",      "@_product_name@"
+      VALUE "ProductVersion",   "@_product_version_string@"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x0409, 0x04B0
+  END
+END

@@ -1,5 +1,7 @@
 include_guard()
 
+include(Platform)
+
 function(_add_class target access class)
   get_property(_source_directory
     TARGET "${target}"
