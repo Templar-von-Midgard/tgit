@@ -3,10 +3,17 @@ message(STATUS "${CPACK_TEMPORARY_DIRECTORY}")
 
 set(_bin_dir "${CPACK_TEMPORARY_DIRECTORY}/bin")
 
- get_directory_property(_variables VARIABLES)
- foreach(_var ${_variables})
-   message(STATUS "${_var}: ${${_var}}")
- endforeach()
+set(_is_uninstall_subkey "Microsoft\\Windows\\CurrentVersion\\Uninstall\\Inno Setup 5_is1")
+find_program(iscc_EXE
+  NAMES ISCC
+  PATHS
+    "[HKEY_LOCAL_MACHINE\\SOFTWARE\\${_is_uninstall_subkey};InstallLocation]"
+    "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Wow6432Node\\${_is_uninstall_subkey};InstallLocation]"
+)
+
+if(NOT iscc_EXE)
+  message(FATAL_ERROR "Couldn't find Inno Setup")
+endif()
 
 set(disabled_features "compiler-runtime" "translations" "system-d3d-compiler")
 list(TRANSFORM disabled_features PREPEND "--no-")
@@ -89,7 +96,7 @@ configure_file(
 )
 
 execute_process(
-  COMMAND "C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe"
+  COMMAND "${iscc_EXE}"
           "/O${CPACK_OUTPUT_FILE_PREFIX}"
           "${CPACK_TOPLEVEL_DIRECTORY}/TGitSetup.iss"
 )
