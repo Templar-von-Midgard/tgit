@@ -9,6 +9,8 @@ OutputBaseFilename=setup-@CPACK_PACKAGE_FILE_NAME@
 SourceDir=@CPACK_TEMPORARY_DIRECTORY@
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
+LicenseFile=@CPACK_RESOURCE_FILE_LICENSE@
+DisableWelcomePage=no
 
 @_components_section@
 
