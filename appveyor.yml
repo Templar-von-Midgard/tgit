@@ -1,0 +1,22 @@
+version: '0.0.1-{branch}-{build}'
+image: 'Visual Studio 2017'
+
+environment:
+  QT_ROOT: C:\Qt\5.12.1\msvc2017_64
+
+configuration: Release
+
+before_build:
+  - cmd: -|
+      mkdir _builds
+      cd _builds
+      cmake -G "Visual Studio 15 2017 Win64" "-DCMAKE_PREFIX_PATH=%QT_ROOT%" ..
+
+build_script:
+  - cmd: cmake --build . --config %CONFIGURATION%
+
+before_package:
+  - cmd: cmake --build . --config %CONFIGURATION% --target package
+
+artifacts:
+  - path: setup-tgit*.exe
