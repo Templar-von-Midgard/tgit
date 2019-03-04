@@ -7,10 +7,9 @@ environment:
 configuration: Release
 
 before_build:
-  - cmd: -|
-      mkdir _builds
-      cd _builds
-      cmake -G "Visual Studio 15 2017 Win64" "-DCMAKE_PREFIX_PATH=%QT_ROOT%" ..
+  - cmd: mkdir _builds
+  - cmd: cd _builds
+  - cmd: cmake -G "Visual Studio 15 2017 Win64" "-DCMAKE_PREFIX_PATH=%QT_ROOT%" ..
 
 build_script:
   - cmd: cmake --build . --config %CONFIGURATION%
