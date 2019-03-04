@@ -1,0 +1,30 @@
+version: '0.0.1-{branch}-{build}'
+image: 'Visual Studio 2017'
+
+environment:
+  QT_ROOT: C:\Qt\5.12.1\msvc2017_64
+
+configuration: Release
+
+before_build:
+  - cmd: mkdir _builds
+  - cmd: cd _builds
+  - cmd: cmake -G "Visual Studio 15 2017 Win64" "-DCMAKE_PREFIX_PATH=%QT_ROOT%" ..
+build_script:
+  - cmd: cmake --build . --config %CONFIGURATION%
+after_build:
+  - cmd: cmake --build . --config %CONFIGURATION% --target package
+artifacts:
+  - path: _builds\setup-tgit*.exe
+    name: Installer
+
+deploy:
+  provider: GitHub
+  auth_token:
+    secure: DfXSdiC4m08exQtHxml/mhOBN9QeUpd0MxUvhtBbWVbrwuBkq1f/XORTyHqa8CQU
+  description: 'Draft release created by AppVeyor'
+  artifact: Installer
+  draft: true
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
