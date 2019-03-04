@@ -23,6 +23,7 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
   Ui->setupUi(this);
   StatusLabel = new QLabel(this);
   Ui->StatusBar->addWidget(StatusLabel);
+  Ui->ViewMenu->addAction(Ui->ReferencesDockWidget->toggleViewAction());
 
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
