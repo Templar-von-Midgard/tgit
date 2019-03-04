@@ -1,4 +1,6 @@
 # TGit
+[![Windows build status](https://ci.appveyor.com/api/projects/status/github/Templar-von-Midgard/tgit?svg=true&branch=master)](https://ci.appveyor.com/api/projects/status/github/Templar-von-Midgard/tgit?svg=true&branch=master)
+
 TGit is a GUI `git` client with the primary design goal of being fast and responsive.
 
 ## Dependencies
