@@ -10,12 +10,16 @@ before_build:
   - cmd: mkdir _builds
   - cmd: cd _builds
   - cmd: cmake -G "Visual Studio 15 2017 Win64" "-DCMAKE_PREFIX_PATH=%QT_ROOT%" ..
-
 build_script:
   - cmd: cmake --build . --config %CONFIGURATION%
-
 after_build:
   - cmd: cmake --build . --config %CONFIGURATION% --target package
-
 artifacts:
   - path: _builds\setup-tgit*.exe
+    name: Installer
+
+deploy:
+  provider: GitHub
+  description: 'Draft release created by AppVeyor'
+  artifact: Installer
+  draft: true
