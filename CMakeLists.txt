@@ -18,8 +18,9 @@ set(PROJECT_DISPLAY_NAME "TGit")
 
 include(Options)
 include(tgitSupport)
+include(Dependencies)
 
-find_package(libgit2 0.27 REQUIRED)
+find_package(libgit2 "${libgit2_VERSION}" EXACT REQUIRED)
 find_package(Qt5 5.12 REQUIRED
   COMPONENTS Widgets
 )

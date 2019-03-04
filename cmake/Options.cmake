@@ -1,3 +1,14 @@
+set(libgit2_VERSION "0.27.8" CACHE STRING "Version of libgit2 to download and use")
+set(libgit2_CHECKSUM
+  "SHA256=8313873d49dc01e8b880ec334d7430ae67496a89aaa8c6e7bbd3affb47a00c76"
+  CACHE STRING
+  "Checksum of the downloaded libgit2 tar ball"
+)
+if(CMAKE_BUILD_TYPE)
+  set(libgit2_CONFIG "${CMAKE_BUILD_TYPE}" CACHE STRING "libgit2 configuration to build")
+else()
+  set(libgit2_CONFIG "Release" CACHE STRING "libgit2 configuration to build")
+endif()
 
 get_property(_is_multiconfig
   GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG
