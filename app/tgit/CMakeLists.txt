@@ -10,6 +10,7 @@ add_executable(tgit WIN32
 add_classes(tgit PRIVATE
   History
   HistoryModelAdaptor
+  ReferencesModel
   GraphItemDelegate
   CommitView
   CommitDiffModel

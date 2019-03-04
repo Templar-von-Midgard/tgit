@@ -102,7 +102,17 @@
    <attribute name="dockWidgetArea">
     <number>1</number>
    </attribute>
-   <widget class="QTreeView" name="ReferencesView"/>
+   <widget class="QTreeView" name="ReferencesView">
+    <property name="indentation">
+     <number>10</number>
+    </property>
+    <property name="rootIsDecorated">
+     <bool>true</bool>
+    </property>
+    <property name="headerHidden">
+     <bool>true</bool>
+    </property>
+   </widget>
   </widget>
   <action name="OpenRepositoryAction">
    <property name="text">

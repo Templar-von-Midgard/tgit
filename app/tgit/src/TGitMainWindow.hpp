@@ -18,6 +18,7 @@ class TGitMainWindow;
 }
 
 class QLabel;
+class ReferencesModel;
 
 class TGitMainWindow : public QMainWindow {
   Q_OBJECT
@@ -42,6 +43,7 @@ private:
 
   gitpp::Repository* Repository;
   std::unique_ptr<History> CurrentHistory;
+  ReferencesModel* References;
   CommitDiffModel* DiffModel;
 
   std::unique_ptr<Ui::TGitMainWindow> Ui;

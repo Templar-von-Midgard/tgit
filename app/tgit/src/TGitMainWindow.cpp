@@ -17,6 +17,7 @@
 #include "GraphItemDelegate.hpp"
 #include "History.hpp"
 #include "HistoryModelAdaptor.hpp"
+#include "ReferencesModel.hpp"
 #include "ui_TGitMainWindow.h"
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::make_unique<Ui::TGitMainWindow>()) {
@@ -24,6 +25,8 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
   StatusLabel = new QLabel(this);
   Ui->StatusBar->addWidget(StatusLabel);
   Ui->ViewMenu->addAction(Ui->ReferencesDockWidget->toggleViewAction());
+  References = new ReferencesModel(this);
+  Ui->ReferencesView->setModel(References);
 
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
@@ -88,6 +91,8 @@ void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repo
   Ui->LogView->resizeColumnToContents(1);
   Ui->LogView->resizeColumnToContents(2);
   Ui->LogView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+
+  References->loadRepository(repository);
 }
 
 void TGitMainWindow::onRepositoryLoadFailed(const QString& path) {
