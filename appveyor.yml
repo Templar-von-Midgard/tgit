@@ -25,3 +25,6 @@ deploy:
   description: 'Draft release created by AppVeyor'
   artifact: Installer
   draft: true
+  on:
+    branch: master
+    APPVEYOR_REPO_TAG: true
