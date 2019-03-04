@@ -20,6 +20,8 @@ artifacts:
 
 deploy:
   provider: GitHub
+  auth_token:
+    secure: DfXSdiC4m08exQtHxml/mhOBN9QeUpd0MxUvhtBbWVbrwuBkq1f/XORTyHqa8CQU
   description: 'Draft release created by AppVeyor'
   artifact: Installer
   draft: true
