@@ -55,16 +55,16 @@ void ReferencesModel::load(const std::vector<Reference>& references) {
   for (const auto& ref : references) {
     switch (ref.Type) {
     case Reference::LocalBranch:
-      localRoot.addChild(QString::fromStdString(ref.ShortName));
+      localRoot.addChild(ref.ShortName);
       break;
     case Reference::RemoteBranch:
-      remoteRoot.addChild(QString::fromStdString(ref.ShortName));
+      remoteRoot.addChild(ref.ShortName);
       break;
     case Reference::Tag:
-      tagRoot.addChild(QString::fromStdString(ref.ShortName));
+      tagRoot.addChild(ref.ShortName);
       break;
     case Reference::Note:
-      noteRoot.addChild(QString::fromStdString(ref.ShortName));
+      noteRoot.addChild(ref.ShortName);
       break;
     default:
       break;

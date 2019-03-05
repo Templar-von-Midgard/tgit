@@ -46,23 +46,22 @@ QVariant HistoryModelAdaptor::headerData(int section, Qt::Orientation orientatio
 }
 
 QVariant HistoryModelAdaptor::data(const QModelIndex& index, int role) const {
-  if (role == Qt::DecorationRole) {
+  if (role == GraphRole) {
     return QVariant::fromValue(Model.graph(index.row()));
+  }
+  if (role == ReferencesRole) {
+    auto commit = Model.commit(index.row());
+    return QVariant::fromValue(ReferenceDb.findByTarget(commit.id()));
   }
   if (role != Qt::DisplayRole) {
     return {};
   }
+
   auto commit = Model.commit(index.row());
   CommitView view{commit};
-
   switch (index.column()) {
   case 0: {
-    QString result;
-    auto references = ReferenceDb.findByTarget(commit.id());
-    for (auto ref : references) {
-      result += QString("(%1) ").arg(QString::fromStdString(ref.get().ShortName));
-    }
-    return result + view.summary();
+    return view.summary();
   }
   case 1:
     return view.creation();

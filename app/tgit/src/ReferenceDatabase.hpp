@@ -2,24 +2,18 @@
 #define REFERENCEDATABASE
 
 #include <functional>
-#include <string>
 #include <vector>
 
+#include <QtCore/QString>
+
 #include <gitpp/ObjectId.hpp>
+
+#include "Reference.hpp"
 
 namespace gitpp {
 class ObjectId;
 class Repository;
 } // namespace gitpp
-
-struct Reference {
-  enum T { LocalBranch, RemoteBranch, Tag, Note };
-
-  gitpp::ObjectId Target;
-  std::string ShortName;
-  T Type;
-  bool IsSymbolic;
-};
 
 class ReferenceDatabase {
 public:
@@ -31,7 +25,7 @@ public:
     return References;
   }
 
-  std::vector<std::reference_wrapper<const Reference>> findByTarget(const gitpp::ObjectId& commitId) const;
+  std::vector<Reference> findByTarget(const gitpp::ObjectId& commitId) const;
 
 private:
   std::vector<Reference> References;

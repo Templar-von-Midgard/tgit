@@ -6,6 +6,7 @@ set(CMAKE_AUTOUIC ON)
 add_executable(tgit WIN32
   src/main.cpp
   src/GraphRow.hpp
+  src/Reference.hpp
 )
 add_classes(tgit PRIVATE
   History

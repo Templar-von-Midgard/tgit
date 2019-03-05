@@ -9,6 +9,8 @@ class ReferenceDatabase;
 class HistoryModelAdaptor : public QAbstractTableModel {
   Q_OBJECT
 public:
+  enum Roles { GraphRole = Qt::UserRole + 1, ReferencesRole };
+
   explicit HistoryModelAdaptor(const History& history, const ReferenceDatabase& referenceDb, QObject* parent = nullptr);
 
   int rowCount(const QModelIndex& parent = {}) const override;
