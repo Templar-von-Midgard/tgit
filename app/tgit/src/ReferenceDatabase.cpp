@@ -5,18 +5,45 @@
 
 namespace {
 
-Reference::T typeOf(const gitpp::Reference& ref) {
+Reference convert(const gitpp::Reference& ref) {
+  auto name = QString::fromUtf8(ref.shortname().data(), ref.shortname().size());
+  bool symbolic = ref.type() == gitpp::Reference::Symbolic;
   if (ref.isLocalBranch()) {
-    return Reference::LocalBranch;
+    LocalBranch result;
+    result.Target = ref.target();
+    result.ShortName = name;
+    result.IsSymbolic = symbolic;
+    if (auto upstream = ref.upstream(); upstream) {
+      result.Upstream = QString::fromUtf8(upstream->shortname().data(), upstream->shortname().size());
+      auto [ahead, behind] = ref.aheadBehind(upstream->target());
+      result.AheadBy = ahead;
+      result.BehindBy = behind;
+    } else {
+      result.AheadBy = 0;
+      result.BehindBy = 0;
+    }
+    return result;
   }
   if (ref.isRemoteBranch()) {
-    return Reference::RemoteBranch;
+    RemoteBranch result;
+    result.Target = ref.target();
+    result.ShortName = name;
+    result.IsSymbolic = symbolic;
+    return result;
   }
   if (ref.isTag()) {
-    return Reference::Tag;
+    Tag result;
+    result.Target = ref.target();
+    result.ShortName = name;
+    result.IsSymbolic = symbolic;
+    return result;
   }
   if (ref.isNote()) {
-    return Reference::Note;
+    Note result;
+    result.Target = ref.target();
+    result.ShortName = name;
+    result.IsSymbolic = symbolic;
+    return result;
   }
   std::abort();
 }
@@ -25,17 +52,14 @@ Reference::T typeOf(const gitpp::Reference& ref) {
 
 ReferenceDatabase::ReferenceDatabase(const gitpp::Repository& repo) noexcept {
   for (const auto& ref : gitpp::ReferenceCollection(repo)) {
-    auto type = typeOf(ref);
-    auto shortname = ref.shortname();
-    References.emplace_back(Reference{ref.target(), QString::fromUtf8(shortname.data(), shortname.size()), type,
-                                      ref.type() == gitpp::Reference::Symbolic});
+    References.emplace_back(convert(ref));
   }
 }
 
 std::vector<Reference> ReferenceDatabase::findByTarget(const gitpp::ObjectId& commitId) const {
   std::vector<Reference> result;
   for (const auto& ref : References) {
-    if (ref.Target == commitId) {
+    if (target(ref) == commitId) {
       result.emplace_back(ref);
     }
   }

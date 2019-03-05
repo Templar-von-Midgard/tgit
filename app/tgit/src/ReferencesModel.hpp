@@ -6,16 +6,18 @@
 
 #include <QtCore/QAbstractItemModel>
 
+#include "Reference.hpp"
+
 namespace gitpp {
 class Repository;
 }
 
-struct Reference;
-
 class ReferencesModel : public QAbstractItemModel {
   Q_OBJECT
 public:
-  ReferencesModel(QObject* parent = nullptr);
+  enum Roles { DataRole = Qt::UserRole + 1 };
+
+  explicit ReferencesModel(QObject* parent = nullptr);
   ~ReferencesModel();
 
   void load(const std::vector<Reference>& references);

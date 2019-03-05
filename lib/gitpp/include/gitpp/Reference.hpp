@@ -1,9 +1,11 @@
 #ifndef GITPP_REFERENCE_HPP
 #define GITPP_REFERENCE_HPP
 
+#include <cstdint>
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <tuple>
 
 struct git_reference;
 struct git_reference_iterator;
@@ -35,6 +37,9 @@ public:
 
   std::string_view name() const noexcept;
   std::string_view shortname() const noexcept;
+
+  std::optional<Reference> upstream() const noexcept;
+  std::tuple<std::size_t, std::size_t> aheadBehind(const ObjectId& source) const noexcept;
 
   ObjectId target() const noexcept;
 

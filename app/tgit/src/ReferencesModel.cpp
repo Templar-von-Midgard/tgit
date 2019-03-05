@@ -1,45 +1,35 @@
 #include "ReferencesModel.hpp"
 
+#include <functional>
+#include <variant>
+
 #include <gitpp/Reference.hpp>
+
+#include <stx/overload.hpp>
 
 #include "ReferenceDatabase.hpp"
 
-namespace {
-QString toString(Reference::T kind) noexcept {
-  switch (kind) {
-  case Reference::LocalBranch:
-    return QStringLiteral("Local branches");
-  case Reference::RemoteBranch:
-    return QStringLiteral("Remote branches");
-  case Reference::Tag:
-    return QStringLiteral("Tags");
-  case Reference::Note:
-    return QStringLiteral("Notes");
-  default:
-    return "UNKNOWN";
-  }
-}
-} // namespace
-
 struct ReferencesModel::TreeItem {
-  TreeItem(const QString& text, TreeItem* parent = nullptr) noexcept : Text(text), Parent(parent) {
+  using ElementT = std::variant<std::monostate, QString, std::reference_wrapper<const Reference>>;
+
+  TreeItem(ElementT data = {}, TreeItem* parent = nullptr) noexcept : Data(data), Parent(parent) {
   }
 
-  TreeItem& addChild(const QString& text) noexcept {
-    return *Children.emplace_back(std::make_unique<TreeItem>(text, this));
+  TreeItem& addChild(ElementT data) noexcept {
+    return *Children.emplace_back(std::make_unique<TreeItem>(data, this));
   }
 
-  QString Text;
+  ElementT Data;
   TreeItem* Parent;
   std::vector<std::unique_ptr<TreeItem>> Children;
 };
 
 ReferencesModel::ReferencesModel(QObject* parent) : QAbstractItemModel(parent) {
   Root = std::make_unique<TreeItem>("");
-  auto& localRoot = Root->addChild(toString(Reference::LocalBranch));
-  auto& remoteRoot = Root->addChild(toString(Reference::RemoteBranch));
-  auto& tagRoot = Root->addChild(toString(Reference::Tag));
-  auto& noteRoot = Root->addChild(toString(Reference::Note));
+  auto& localRoot = Root->addChild(tr("Local branches"));
+  auto& remoteRoot = Root->addChild(tr("Remote branches"));
+  auto& tagRoot = Root->addChild(tr("Tags"));
+  auto& noteRoot = Root->addChild(tr("Notes"));
 }
 
 ReferencesModel::~ReferencesModel() = default;
@@ -47,28 +37,18 @@ ReferencesModel::~ReferencesModel() = default;
 void ReferencesModel::load(const std::vector<Reference>& references) {
   beginResetModel();
   Root = std::make_unique<TreeItem>("");
-  auto& localRoot = Root->addChild(toString(Reference::LocalBranch));
-  auto& remoteRoot = Root->addChild(toString(Reference::RemoteBranch));
-  auto& tagRoot = Root->addChild(toString(Reference::Tag));
-  auto& noteRoot = Root->addChild(toString(Reference::Note));
+  auto& localRoot = Root->addChild(tr("Local branches"));
+  auto& remoteRoot = Root->addChild(tr("Remote branches"));
+  auto& tagRoot = Root->addChild(tr("Tags"));
+  auto& noteRoot = Root->addChild(tr("Notes"));
 
   for (const auto& ref : references) {
-    switch (ref.Type) {
-    case Reference::LocalBranch:
-      localRoot.addChild(ref.ShortName);
-      break;
-    case Reference::RemoteBranch:
-      remoteRoot.addChild(ref.ShortName);
-      break;
-    case Reference::Tag:
-      tagRoot.addChild(ref.ShortName);
-      break;
-    case Reference::Note:
-      noteRoot.addChild(ref.ShortName);
-      break;
-    default:
-      break;
-    }
+    auto& root = std::visit(stx::overload{[&localRoot](const LocalBranch&) -> TreeItem& { return localRoot; },
+                                          [&remoteRoot](const RemoteBranch&) -> TreeItem& { return remoteRoot; },
+                                          [&tagRoot](const Tag&) -> TreeItem& { return tagRoot; },
+                                          [&noteRoot](const Note&) -> TreeItem& { return noteRoot; }},
+                            ref);
+    root.addChild(std::ref(ref));
   }
   endResetModel();
 }
@@ -111,7 +91,14 @@ int ReferencesModel::columnCount(const QModelIndex& parent) const {
 
 QVariant ReferencesModel::data(const QModelIndex& index, int role) const {
   if (role == Qt::DisplayRole) {
-    return itemAt(index)->Text;
+    return std::visit(stx::overload{[](std::monostate) { return QString{}; }, [](QString text) { return text; },
+                                    [](const Reference& ref) { return shortName(ref); }},
+                      itemAt(index)->Data);
+  }
+  if (role == DataRole) {
+    if (auto refp = std::get_if<2>(&itemAt(index)->Data); refp != nullptr) {
+      return QVariant::fromValue(refp->get());
+    }
   }
   return {};
 }

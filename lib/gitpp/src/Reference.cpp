@@ -2,7 +2,13 @@
 
 #include <cassert>
 
+#include <git2/errors.h>
+#include <git2/graph.h>
 #include <git2/refs.h>
+// clang-format off
+#include <git2/buffer.h>
+#include <git2/branch.h>
+// clang-format on
 
 #include "ObjectId.hpp"
 #include "Repository.hpp"
@@ -73,6 +79,21 @@ std::string_view Reference::name() const noexcept {
 
 std::string_view Reference::shortname() const noexcept {
   return git_reference_shorthand(Handle.get());
+}
+
+std::optional<Reference> Reference::upstream() const noexcept {
+  git_reference* handle = nullptr;
+  if (git_branch_upstream(&handle, Handle.get()) == GIT_ENOTFOUND) {
+    return std::nullopt;
+  }
+  return Reference(handle);
+}
+
+std::tuple<std::size_t, std::size_t> Reference::aheadBehind(const ObjectId& source) const noexcept {
+  std::tuple<std::size_t, std::size_t> result;
+  git_graph_ahead_behind(&std::get<0>(result), &std::get<1>(result), git_reference_owner(Handle.get()),
+                         target().handle(), source.handle());
+  return result;
 }
 
 ObjectId Reference::target() const noexcept {

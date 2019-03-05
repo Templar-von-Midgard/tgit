@@ -6,6 +6,7 @@
 #include <QtGui/QPainterPath>
 
 #include <stx/algorithm/contains.hpp>
+#include <stx/overload.hpp>
 
 #include "GraphRow.hpp"
 #include "HistoryModelAdaptor.hpp"
@@ -70,21 +71,12 @@ void GraphItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& opt
 
   painter->setFont(referenceFont(o));
   for (auto&& ref : references(index)) {
-    int width = painter->fontMetrics().width(ref.ShortName) + 2 * ReferenceMargin;
-    const auto& bg = [this, type = ref.Type]() -> const QBrush& {
-      switch (type) {
-      case Reference::LocalBranch:
-        return LocalBranchBackground;
-      case Reference::RemoteBranch:
-        return RemoteBranchBackground;
-      case Reference::Tag:
-        return TagBackground;
-      case Reference::Note:
-        return NoteBackground;
-      default:
-        std::abort();
-      }
-    }();
+    int width = painter->fontMetrics().width(shortName(ref)) + 2 * ReferenceMargin;
+    const auto& bg = std::visit(stx::overload{[this](const LocalBranch&) { return LocalBranchBackground; },
+                                              [this](const RemoteBranch&) { return RemoteBranchBackground; },
+                                              [this](const Tag&) { return TagBackground; },
+                                              [this](const Note&) { return NoteBackground; }},
+                                ref);
     paintReference(*painter, QRectF(referencesX, o.rect.top(), width, o.rect.height()), ref, bg);
     referencesX += width + ReferencePadding;
   }
@@ -136,7 +128,7 @@ QSize referencesSizeHint(const QStyleOptionViewItem& option, const std::vector<R
   auto font = referenceFont(option);
   QFontMetrics fm(font);
   int width = std::accumulate(refs.begin(), refs.end(), 0, [&fm](int acc, const Reference& ref) {
-    return acc + fm.width(ref.ShortName) + ReferenceMargin * 2 + ReferencePadding;
+    return acc + fm.width(shortName(ref)) + ReferenceMargin * 2 + ReferencePadding;
   });
   return {width, previousSize.height()};
 }
@@ -221,13 +213,13 @@ QSize paintGraph(QPainter& painter, const QStyleOptionViewItem& option, const QM
 }
 
 void paintReference(QPainter& painter, QRectF rect, const Reference& ref, const QBrush& background) noexcept {
-  QRectF boundingRect = painter.fontMetrics().boundingRect(rect.toRect(), Qt::AlignCenter, ref.ShortName);
+  QRectF boundingRect = painter.fontMetrics().boundingRect(rect.toRect(), Qt::AlignCenter, shortName(ref));
   QPainterPath path;
   path.addRoundedRect(boundingRect.adjusted(-ReferenceMargin, -ReferenceMargin, ReferenceMargin, ReferenceMargin),
                       ReferenceMargin, ReferenceMargin);
   painter.fillPath(path, background);
   painter.drawPath(path);
-  painter.drawText(boundingRect, Qt::AlignCenter, ref.ShortName);
+  painter.drawText(boundingRect, Qt::AlignCenter, shortName(ref));
 }
 
 } // namespace

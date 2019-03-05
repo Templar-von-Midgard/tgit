@@ -18,6 +18,7 @@
 #include "History.hpp"
 #include "HistoryModelAdaptor.hpp"
 #include "ReferenceDatabase.hpp"
+#include "ReferenceItemDelegate.hpp"
 #include "ReferencesModel.hpp"
 #include "ui_TGitMainWindow.h"
 
@@ -28,6 +29,7 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
   Ui->ViewMenu->addAction(Ui->ReferencesDockWidget->toggleViewAction());
   References = new ReferencesModel(this);
   Ui->ReferencesView->setModel(References);
+  Ui->ReferencesView->setItemDelegate(new ReferenceItemDelegate(Ui->ReferencesView));
 
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
