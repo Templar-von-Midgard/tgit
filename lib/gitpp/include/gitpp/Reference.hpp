@@ -11,12 +11,16 @@ struct git_reference_iterator;
 namespace gitpp {
 
 class Repository;
+class ObjectId;
 
 class Reference {
 public:
   enum Type { Direct, Symbolic };
 
+  explicit Reference(const Reference&) noexcept;
+
   Reference(Reference&&) noexcept = default;
+  Reference& operator=(Reference&&) noexcept = default;
   ~Reference() noexcept;
 
   static Reference fromHandle(void*) noexcept;
@@ -31,6 +35,8 @@ public:
 
   std::string_view name() const noexcept;
   std::string_view shortname() const noexcept;
+
+  ObjectId target() const noexcept;
 
 private:
   explicit Reference(git_reference*) noexcept;

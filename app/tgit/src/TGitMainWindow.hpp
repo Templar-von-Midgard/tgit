@@ -19,6 +19,7 @@ class TGitMainWindow;
 
 class QLabel;
 class ReferencesModel;
+class ReferenceDatabase;
 
 class TGitMainWindow : public QMainWindow {
   Q_OBJECT
@@ -30,7 +31,7 @@ signals:
   void repositoryLoadRequested(const QString& path);
 
 public slots:
-  void loadRepository(const QString& path, gitpp::Repository& repository);
+  void loadRepository(const QString& path, gitpp::Repository& repository, const ReferenceDatabase& referenceDb);
   void onRepositoryLoadFailed(const QString& path);
 
 private slots:

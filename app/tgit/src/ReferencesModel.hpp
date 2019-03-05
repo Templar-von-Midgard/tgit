@@ -1,8 +1,8 @@
 #ifndef REFERENCESMODEL_HPP
 #define REFERENCESMODEL_HPP
 
-#include <map>
 #include <memory>
+#include <vector>
 
 #include <QtCore/QAbstractItemModel>
 
@@ -10,7 +10,7 @@ namespace gitpp {
 class Repository;
 }
 
-enum class ReferenceKind { LocalBranch, RemoteBranch, Tag, Note };
+struct Reference;
 
 class ReferencesModel : public QAbstractItemModel {
   Q_OBJECT
@@ -18,7 +18,7 @@ public:
   ReferencesModel(QObject* parent = nullptr);
   ~ReferencesModel();
 
-  void loadRepository(const gitpp::Repository& repo);
+  void load(const std::vector<Reference>& references);
 
   QModelIndex index(int row, int column, const QModelIndex& parent = {}) const override;
   QModelIndex parent(const QModelIndex& child) const override;
@@ -27,12 +27,11 @@ public:
   QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
 
 private:
-  std::multimap<ReferenceKind, QString> References;
-
   struct TreeItem;
-  std::unique_ptr<TreeItem> Root;
 
   TreeItem* itemAt(const QModelIndex& index) const;
+
+  std::unique_ptr<TreeItem> Root;
 };
 
 #endif // REFERENCESMODEL_HPP

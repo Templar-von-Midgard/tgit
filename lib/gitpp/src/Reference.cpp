@@ -4,6 +4,7 @@
 
 #include <git2/refs.h>
 
+#include "ObjectId.hpp"
 #include "Repository.hpp"
 
 namespace {
@@ -20,6 +21,12 @@ std::optional<gitpp::Reference> iteratorNext(git_reference_iterator*& iterator) 
 } // namespace
 
 namespace gitpp {
+
+Reference::Reference(const Reference& other) noexcept {
+  git_reference* handle = nullptr;
+  git_reference_dup(&handle, other.Handle.get());
+  Handle.reset(handle);
+}
 
 Reference::~Reference() noexcept = default;
 
@@ -66,6 +73,19 @@ std::string_view Reference::name() const noexcept {
 
 std::string_view Reference::shortname() const noexcept {
   return git_reference_shorthand(Handle.get());
+}
+
+ObjectId Reference::target() const noexcept {
+  ObjectId target;
+  git_reference* resolved = nullptr;
+  git_reference_resolve(&resolved, Handle.get());
+  if (resolved != nullptr) {
+    target = ObjectId{git_reference_target(resolved)};
+    git_reference_free(resolved);
+  } else {
+    target = ObjectId{git_reference_target(Handle.get())};
+  }
+  return target;
 }
 
 Reference::Reference(git_reference* handle) noexcept : Handle(handle) {

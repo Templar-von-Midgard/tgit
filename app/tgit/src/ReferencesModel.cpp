@@ -2,16 +2,18 @@
 
 #include <gitpp/Reference.hpp>
 
+#include "ReferenceDatabase.hpp"
+
 namespace {
-QString toString(ReferenceKind kind) noexcept {
+QString toString(Reference::T kind) noexcept {
   switch (kind) {
-  case ReferenceKind::LocalBranch:
+  case Reference::LocalBranch:
     return QStringLiteral("Local branches");
-  case ReferenceKind::RemoteBranch:
+  case Reference::RemoteBranch:
     return QStringLiteral("Remote branches");
-  case ReferenceKind::Tag:
+  case Reference::Tag:
     return QStringLiteral("Tags");
-  case ReferenceKind::Note:
+  case Reference::Note:
     return QStringLiteral("Notes");
   default:
     return "UNKNOWN";
@@ -20,55 +22,52 @@ QString toString(ReferenceKind kind) noexcept {
 } // namespace
 
 struct ReferencesModel::TreeItem {
+  TreeItem(const QString& text, TreeItem* parent = nullptr) noexcept : Text(text), Parent(parent) {
+  }
+
+  TreeItem& addChild(const QString& text) noexcept {
+    return *Children.emplace_back(std::make_unique<TreeItem>(text, this));
+  }
+
   QString Text;
-  TreeItem* Parent = nullptr;
+  TreeItem* Parent;
   std::vector<std::unique_ptr<TreeItem>> Children;
 };
 
 ReferencesModel::ReferencesModel(QObject* parent) : QAbstractItemModel(parent) {
-  Root = std::make_unique<TreeItem>();
-  for (auto kind : {ReferenceKind::LocalBranch, ReferenceKind::RemoteBranch, ReferenceKind::Tag, ReferenceKind::Note}) {
-    auto& group = Root->Children.emplace_back(std::make_unique<TreeItem>());
-    group->Parent = Root.get();
-    group->Text = toString(kind);
-  }
+  Root = std::make_unique<TreeItem>("");
+  auto& localRoot = Root->addChild(toString(Reference::LocalBranch));
+  auto& remoteRoot = Root->addChild(toString(Reference::RemoteBranch));
+  auto& tagRoot = Root->addChild(toString(Reference::Tag));
+  auto& noteRoot = Root->addChild(toString(Reference::Note));
 }
 
 ReferencesModel::~ReferencesModel() = default;
 
-void ReferencesModel::loadRepository(const gitpp::Repository& repo) {
+void ReferencesModel::load(const std::vector<Reference>& references) {
   beginResetModel();
-  References.clear();
-  for (const auto& ref : gitpp::ReferenceCollection(repo)) {
-    if (ref.type() == gitpp::Reference::Symbolic) {
-      continue;
-    }
-    auto shortname = ref.shortname();
-    auto type = [](const gitpp::Reference& ref) -> ReferenceKind {
-      if (ref.isLocalBranch()) {
-        return ReferenceKind::LocalBranch;
-      } else if (ref.isRemoteBranch()) {
-        return ReferenceKind::RemoteBranch;
-      } else if (ref.isTag()) {
-        return ReferenceKind::Tag;
-      } else if (ref.isNote()) {
-        return ReferenceKind::Note;
-      }
-      std::abort();
-    }(ref);
-    References.emplace(type, QString::fromUtf8(shortname.data(), shortname.size()));
-  }
+  Root = std::make_unique<TreeItem>("");
+  auto& localRoot = Root->addChild(toString(Reference::LocalBranch));
+  auto& remoteRoot = Root->addChild(toString(Reference::RemoteBranch));
+  auto& tagRoot = Root->addChild(toString(Reference::Tag));
+  auto& noteRoot = Root->addChild(toString(Reference::Note));
 
-  Root = std::make_unique<TreeItem>();
-  for (auto kind : {ReferenceKind::LocalBranch, ReferenceKind::RemoteBranch, ReferenceKind::Tag, ReferenceKind::Note}) {
-    auto& group = Root->Children.emplace_back(std::make_unique<TreeItem>());
-    group->Parent = Root.get();
-    group->Text = toString(kind);
-    auto [begin, end] = References.equal_range(kind);
-    for (; begin != end; ++begin) {
-      auto& item = group->Children.emplace_back(std::make_unique<TreeItem>());
-      item->Parent = group.get();
-      item->Text = begin->second;
+  for (const auto& ref : references) {
+    switch (ref.Type) {
+    case Reference::LocalBranch:
+      localRoot.addChild(QString::fromStdString(ref.ShortName));
+      break;
+    case Reference::RemoteBranch:
+      remoteRoot.addChild(QString::fromStdString(ref.ShortName));
+      break;
+    case Reference::Tag:
+      tagRoot.addChild(QString::fromStdString(ref.ShortName));
+      break;
+    case Reference::Note:
+      noteRoot.addChild(QString::fromStdString(ref.ShortName));
+      break;
+    default:
+      break;
     }
   }
   endResetModel();

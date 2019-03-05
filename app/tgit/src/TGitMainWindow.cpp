@@ -17,6 +17,7 @@
 #include "GraphItemDelegate.hpp"
 #include "History.hpp"
 #include "HistoryModelAdaptor.hpp"
+#include "ReferenceDatabase.hpp"
 #include "ReferencesModel.hpp"
 #include "ui_TGitMainWindow.h"
 
@@ -76,14 +77,15 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
 
 TGitMainWindow::~TGitMainWindow() = default;
 
-void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repository) {
+void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repository,
+                                    const ReferenceDatabase& referenceDb) {
   setWindowTitle(QStringLiteral("History [%1]").arg(path));
 
   Repository = &repository;
   CurrentHistory = std::make_unique<History>(*Repository);
 
   delete Ui->LogView->model();
-  Ui->LogView->setModel(new HistoryModelAdaptor(*CurrentHistory, Ui->LogView));
+  Ui->LogView->setModel(new HistoryModelAdaptor(*CurrentHistory, referenceDb, Ui->LogView));
   connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
           [this] { LogView_currentRowChanged(); });
 
@@ -92,7 +94,7 @@ void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repo
   Ui->LogView->resizeColumnToContents(2);
   Ui->LogView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
-  References->loadRepository(repository);
+  References->load(referenceDb.references());
 }
 
 void TGitMainWindow::onRepositoryLoadFailed(const QString& path) {
