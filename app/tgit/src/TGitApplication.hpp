@@ -10,6 +10,7 @@ class Repository;
 }
 
 class TGitMainWindow;
+class ReferenceDatabase;
 
 class TGitApplication : public QApplication {
   Q_OBJECT
@@ -28,6 +29,7 @@ private:
   TGitMainWindow* MainWindow;
 
   std::unique_ptr<gitpp::Repository> Repository;
+  std::unique_ptr<ReferenceDatabase> ReferenceDb;
 };
 
 #endif // TGITAPPLICATION_HPP

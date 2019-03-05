@@ -4,11 +4,14 @@
 #include <QtCore/QAbstractTableModel>
 
 class History;
+class ReferenceDatabase;
 
 class HistoryModelAdaptor : public QAbstractTableModel {
   Q_OBJECT
 public:
-  explicit HistoryModelAdaptor(const History& history, QObject* parent = nullptr);
+  enum Roles { GraphRole = Qt::UserRole + 1, ReferencesRole };
+
+  explicit HistoryModelAdaptor(const History& history, const ReferenceDatabase& referenceDb, QObject* parent = nullptr);
 
   int rowCount(const QModelIndex& parent = {}) const override;
   int columnCount(const QModelIndex& parent = {}) const override;
@@ -17,6 +20,7 @@ public:
 
 private:
   const History& Model;
+  const ReferenceDatabase& ReferenceDb;
 };
 
 #endif // HISTORYMODELADAPTOR_HPP

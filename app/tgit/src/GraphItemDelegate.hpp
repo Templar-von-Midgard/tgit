@@ -14,7 +14,12 @@ protected:
   void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override;
 
 private:
-  QSize decorationSize(QSize previousSize, const QModelIndex& index) const;
+  QSize decorationSize(const QStyleOptionViewItem& option, const QModelIndex& index) const;
+
+  QBrush LocalBranchBackground;
+  QBrush RemoteBranchBackground;
+  QBrush TagBackground;
+  QBrush NoteBackground;
 };
 
 #endif // GRAPHITEMDELEGATE_HPP

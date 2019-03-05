@@ -6,6 +6,7 @@
 
 #include "CommitView.hpp"
 #include "History.hpp"
+#include "ReferenceDatabase.hpp"
 
 namespace {
 
@@ -25,8 +26,8 @@ QString columnName(int column) noexcept {
 
 } // namespace
 
-HistoryModelAdaptor::HistoryModelAdaptor(const History& history, QObject* parent)
-    : QAbstractTableModel(parent), Model(history) {
+HistoryModelAdaptor::HistoryModelAdaptor(const History& history, const ReferenceDatabase& referenceDb, QObject* parent)
+    : QAbstractTableModel(parent), Model(history), ReferenceDb(referenceDb) {
 }
 
 int HistoryModelAdaptor::rowCount(const QModelIndex&) const {
@@ -45,17 +46,23 @@ QVariant HistoryModelAdaptor::headerData(int section, Qt::Orientation orientatio
 }
 
 QVariant HistoryModelAdaptor::data(const QModelIndex& index, int role) const {
-  if (role == Qt::DecorationRole) {
+  if (role == GraphRole) {
     return QVariant::fromValue(Model.graph(index.row()));
+  }
+  if (role == ReferencesRole) {
+    auto commit = Model.commit(index.row());
+    return QVariant::fromValue(ReferenceDb.findByTarget(commit.id()));
   }
   if (role != Qt::DisplayRole) {
     return {};
   }
+
   auto commit = Model.commit(index.row());
   CommitView view{commit};
   switch (index.column()) {
-  case 0:
+  case 0: {
     return view.summary();
+  }
   case 1:
     return view.creation();
   case 2:

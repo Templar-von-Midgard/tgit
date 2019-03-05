@@ -23,6 +23,7 @@ include(Dependencies)
 find_package(libgit2 "${libgit2_VERSION}" EXACT REQUIRED)
 find_package(Qt5 5.12 REQUIRED
   COMPONENTS Widgets
+             Svg
 )
 
 set(DEBUGGER_PATHS

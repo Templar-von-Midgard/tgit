@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource prefix="/images">
+    <file alias="half-arrow-up">half-arrow-up.svg</file>
+    <file alias="half-arrow-down">half-arrow-down.svg</file>
+</qresource>
+</RCC>

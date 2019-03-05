@@ -74,7 +74,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="FileMenu">
@@ -83,9 +83,37 @@
     </property>
     <addaction name="OpenRepositoryAction"/>
    </widget>
+   <widget class="QMenu" name="ViewMenu">
+    <property name="title">
+     <string>&amp;View</string>
+    </property>
+   </widget>
    <addaction name="FileMenu"/>
+   <addaction name="ViewMenu"/>
   </widget>
   <widget class="QStatusBar" name="StatusBar"/>
+  <widget class="QDockWidget" name="ReferencesDockWidget">
+   <property name="features">
+    <set>QDockWidget::AllDockWidgetFeatures</set>
+   </property>
+   <property name="windowTitle">
+    <string>&amp;References</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QTreeView" name="ReferencesView">
+    <property name="indentation">
+     <number>10</number>
+    </property>
+    <property name="rootIsDecorated">
+     <bool>true</bool>
+    </property>
+    <property name="headerHidden">
+     <bool>true</bool>
+    </property>
+   </widget>
+  </widget>
   <action name="OpenRepositoryAction">
    <property name="text">
     <string>&amp;Open</string>
@@ -109,6 +137,11 @@
   <action name="CopyMessageAction">
    <property name="text">
     <string>Copy Message</string>
+   </property>
+  </action>
+  <action name="actionReferences">
+   <property name="text">
+    <string>References</string>
    </property>
   </action>
  </widget>

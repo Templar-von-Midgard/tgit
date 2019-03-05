@@ -4,6 +4,7 @@
 
 #include <gitpp/Repository.hpp>
 
+#include "ReferenceDatabase.hpp"
 #include "TGitMainWindow.hpp"
 
 TGitApplication::TGitApplication(int& argc, char* argv[]) : QApplication(argc, argv) {
@@ -15,7 +16,7 @@ TGitApplication::TGitApplication(int& argc, char* argv[]) : QApplication(argc, a
 
   connect(MainWindow, &TGitMainWindow::repositoryLoadRequested, this, &TGitApplication::loadRepository);
   connect(this, &TGitApplication::repositoryLoaded, MainWindow,
-          [this](const QString& path) { MainWindow->loadRepository(path, *Repository); });
+          [this](const QString& path) { MainWindow->loadRepository(path, *Repository, *ReferenceDb); });
   connect(this, &TGitApplication::repositoryLoadFailed, MainWindow, &TGitMainWindow::onRepositoryLoadFailed);
 }
 
@@ -28,6 +29,7 @@ void TGitApplication::loadRepository(const QString& path) {
   std::string_view nativePathView{nativePath.data(), static_cast<std::size_t>(nativePath.size())};
   if (auto repo = gitpp::Repository::open(nativePathView); repo) {
     Repository = std::make_unique<gitpp::Repository>(std::move(*repo));
+    ReferenceDb = std::make_unique<ReferenceDatabase>(*Repository);
     repositoryLoaded(fancyPath);
   } else {
     repositoryLoadFailed(fancyPath);

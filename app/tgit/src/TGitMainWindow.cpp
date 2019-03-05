@@ -17,12 +17,19 @@
 #include "GraphItemDelegate.hpp"
 #include "History.hpp"
 #include "HistoryModelAdaptor.hpp"
+#include "ReferenceDatabase.hpp"
+#include "ReferenceItemDelegate.hpp"
+#include "ReferencesModel.hpp"
 #include "ui_TGitMainWindow.h"
 
 TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::make_unique<Ui::TGitMainWindow>()) {
   Ui->setupUi(this);
   StatusLabel = new QLabel(this);
   Ui->StatusBar->addWidget(StatusLabel);
+  Ui->ViewMenu->addAction(Ui->ReferencesDockWidget->toggleViewAction());
+  References = new ReferencesModel(this);
+  Ui->ReferencesView->setModel(References);
+  Ui->ReferencesView->setItemDelegate(new ReferenceItemDelegate(Ui->ReferencesView));
 
   Ui->OpenRepositoryAction->setShortcut(QKeySequence::Open);
   connect(Ui->OpenRepositoryAction, &QAction::triggered, this, &TGitMainWindow::openAction_triggered);
@@ -72,14 +79,15 @@ TGitMainWindow::TGitMainWindow(QWidget* parent) : QMainWindow(parent), Ui(std::m
 
 TGitMainWindow::~TGitMainWindow() = default;
 
-void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repository) {
+void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repository,
+                                    const ReferenceDatabase& referenceDb) {
   setWindowTitle(QStringLiteral("History [%1]").arg(path));
 
   Repository = &repository;
   CurrentHistory = std::make_unique<History>(*Repository);
 
   delete Ui->LogView->model();
-  Ui->LogView->setModel(new HistoryModelAdaptor(*CurrentHistory, Ui->LogView));
+  Ui->LogView->setModel(new HistoryModelAdaptor(*CurrentHistory, referenceDb, Ui->LogView));
   connect(Ui->LogView->selectionModel(), &QItemSelectionModel::currentRowChanged, Ui->CommitDetails,
           [this] { LogView_currentRowChanged(); });
 
@@ -87,6 +95,8 @@ void TGitMainWindow::loadRepository(const QString& path, gitpp::Repository& repo
   Ui->LogView->resizeColumnToContents(1);
   Ui->LogView->resizeColumnToContents(2);
   Ui->LogView->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+
+  References->load(referenceDb.references());
 }
 
 void TGitMainWindow::onRepositoryLoadFailed(const QString& path) {

@@ -11,6 +11,7 @@ add_classes(gitpp PRIVATE
   Diff
   Delta
   Blob
+  Reference
 )
 target_link_libraries(gitpp
   PRIVATE git::libgit2
